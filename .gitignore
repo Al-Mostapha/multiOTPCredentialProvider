@@ -71,3 +71,7 @@ Testing/
 x64
 bin
 obj
+*.tlog
+*.db
+*.suo
+*.idb

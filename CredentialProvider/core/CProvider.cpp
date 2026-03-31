@@ -28,6 +28,7 @@
 #include "RegistryReader.h"
 #include "Shared.h"
 #include <credentialprovider.h>
+#include <propkey.h>
 #include <tchar.h>
 
 using namespace std;
@@ -46,10 +47,14 @@ CProvider::CProvider() :
 
 CProvider::~CProvider()
 {
-	if (_credential != NULL)
+	for (auto& cred : _credentials)
 	{
-		_credential->Release();
+		if (cred)
+		{
+			cred->Release();
+		}
 	}
+	_credentials.clear();
 
 	if (_pCredProviderUserArray != nullptr)
 	{
@@ -116,7 +121,6 @@ HRESULT CProvider::SetUsageScenario(
 
 	if (hr == S_OK)
 	{
-		_EnumerateAccountsForUsageScenario();
 		if (!Shared::IsRequiredForScenario(cpus, PROVIDER))
 		{
 			DebugPrint("CP is not enumerated because of the configuration for this scenario.");
@@ -131,61 +135,6 @@ HRESULT CProvider::SetUsageScenario(
 }
 
 
-void CProvider::_EnumerateAccountsForUsageScenario(){
-    // HRESULT hr = S_OK;
-    // _dwCredentialCount = 0;
-
-    // // ----------------------------------------------------------------
-    // // OPTION A: Enumerate local Windows user accounts via NetUserEnum
-    // // ----------------------------------------------------------------
-    // NET_API_STATUS  nStatus;
-    // LPUSER_INFO_0   pBuf = nullptr;
-    // DWORD           dwEntriesRead = 0, dwTotalEntries = 0;
-
-    // nStatus = NetUserEnum(
-    //     nullptr,            // local machine
-    //     0,                  // USER_INFO_0 — just the username
-    //     FILTER_NORMAL_ACCOUNT,
-    //     (LPBYTE*)&pBuf,
-    //     MAX_PREFERRED_LENGTH,
-    //     &dwEntriesRead,
-    //     &dwTotalEntries,
-    //     nullptr);
-
-    // if (nStatus == NERR_Success || nStatus == ERROR_MORE_DATA)
-    // {
-    //     for (DWORD i = 0; i < dwEntriesRead && _dwCredentialCount < MAX_CREDENTIALS; i++)
-    //     {
-    //         CMyCredential* pCred = new(std::nothrow) CMyCredential();
-    //         if (!pCred) { hr = E_OUTOFMEMORY; break; }
-
-    //         hr = pCred->Initialize(_cpus, pBuf[i].usri0_name);
-    //         if (SUCCEEDED(hr))
-    //         {
-    //             _rgpCredentials[_dwCredentialCount++] = pCred;
-    //         }
-    //         else
-    //         {
-    //             pCred->Release();
-    //         }
-    //     }
-    // }
-
-    // if (pBuf) NetApiBufferFree(pBuf);
-
-    // ----------------------------------------------------------------
-    // OPTION B: Enumerate from your own custom store (e.g. registry,
-    // file, or database) — swap in your own logic here instead.
-    // ----------------------------------------------------------------
-    // Example: read usernames from HKLM\SOFTWARE\MyApp\Users
-    //
-    // HKEY hKey;
-    // RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\MyApp\\Users", ...);
-    // RegEnumKeyEx(...) to iterate subkeys as usernames
-    // Create a CMyCredential for each found username
-
-    // return hr;
-}
 
 // SetSerialization takes the kind of buffer that you would normally return to LogonUI for
 // an authentication attempt. It's the opposite of ICredentialProviderCredential::GetSerialization.
@@ -420,7 +369,13 @@ HRESULT CProvider::GetCredentialCount(
 {
 	DebugPrint(__FUNCTION__);
 
-	*pdwCount = 1;
+	DWORD dwUserCount = 0;
+	if (_pCredProviderUserArray != nullptr && _config->provider.cpu == CPUS_LOGON)
+	{
+		_pCredProviderUserArray->GetCount(&dwUserCount);
+	}
+
+	*pdwCount = (dwUserCount > 0) ? dwUserCount : 1;
 	*pdwDefault = 0; // this means we want to be the default
 	*pbAutoLogonWithDefault = FALSE;
 	if (_config->noDefault)
@@ -432,6 +387,7 @@ HRESULT CProvider::GetCredentialCount(
 	// if serialized creds are available, try using them to logon
 	if (_SerializationAvailable(SAF_USERNAME) && _SerializationAvailable(SAF_PASSWORD) && _config->provider.cpu != CPUS_CREDUI)
 	{
+		*pdwCount = 1;
 		*pdwDefault = 0;
 		_config->isRemoteSession = Shared::IsCurrentSessionRemote();
 		if (_config->isRemoteSession && !_config->twoStepHideOTP)
@@ -462,40 +418,40 @@ HRESULT CProvider::GetCredentialAt(
 	HRESULT hr = E_FAIL;
 	const CREDENTIAL_PROVIDER_USAGE_SCENARIO usage_scenario = _config->provider.cpu;
 
+	// Expand the credentials vector to accommodate dwIndex if needed
+	if (dwIndex >= _credentials.size())
+	{
+		_credentials.resize(dwIndex + 1);
+	}
 
-	if (!_credential)
+	if (!_credentials[dwIndex])
 	{
 		DebugPrint("Checking for serialized credentials");
 
-		PWSTR serializedUser, serializedPass, serializedDomain;
+		PWSTR serializedUser = nullptr, serializedPass = nullptr, serializedDomain = nullptr;
 		_GetSerializedCredentials(&serializedUser, &serializedPass, &serializedDomain);
 
 		DebugPrint("Checking for missing credentials");
 
 		if (usage_scenario == CPUS_UNLOCK_WORKSTATION && serializedUser == nullptr)
 		{
-			if (serializedUser == nullptr)
+			DebugPrint("Looking-up missing user name from session");
+
+			DWORD dwLen = 0;
+			if (!WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE,
+				WTS_CURRENT_SESSION,
+				WTSUserName,
+				&serializedUser,
+				&dwLen))
 			{
-				DebugPrint("Looking-up missing user name from session");
-
-				DWORD dwLen = 0;
-
-				if (!WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE,
-					WTS_CURRENT_SESSION,
-					WTSUserName,
-					&serializedUser,
-					&dwLen))
-				{
-					serializedUser = nullptr;
-				}
+				serializedUser = nullptr;
 			}
 
 			if (serializedDomain == nullptr)
 			{
 				DebugPrint("Looking-up missing domain name from session");
 
-				DWORD dwLen = 0;
-
+				dwLen = 0;
 				if (!WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE,
 					WTS_CURRENT_SESSION,
 					WTSDomainName,
@@ -508,12 +464,34 @@ HRESULT CProvider::GetCredentialAt(
 		}
 		else if (usage_scenario == CPUS_LOGON || usage_scenario == CPUS_CREDUI)
 		{
+			// For CPUS_LOGON, look up the username for this tile from the user array
+			if (usage_scenario == CPUS_LOGON && _pCredProviderUserArray != nullptr && serializedUser == nullptr)
+			{
+				DWORD dwUserCount = 0;
+				_pCredProviderUserArray->GetCount(&dwUserCount);
+
+				if (dwIndex < dwUserCount)
+				{
+					ICredentialProviderUser* pUser = nullptr;
+					if (SUCCEEDED(_pCredProviderUserArray->GetAt(dwIndex, &pUser)) && pUser != nullptr)
+					{
+						PWSTR pwszUsername = nullptr;
+						if (SUCCEEDED(pUser->GetStringValue(PKEY_Identity_QualifiedUserName, &pwszUsername)) && pwszUsername != nullptr)
+						{
+							DebugPrint("Got user from user array:");
+							DebugPrint(pwszUsername);
+							serializedUser = pwszUsername; // ownership transferred; CoTaskMemFree below
+						}
+						pUser->Release();
+					}
+				}
+			}
+
 			if (serializedDomain == nullptr)
 			{
 				DebugPrint("Looking-up missing domain name from computer");
 
 				NETSETUP_JOIN_STATUS join_status;
-
 				if (!NetGetJoinInformation(
 					nullptr,
 					&serializedDomain,
@@ -528,12 +506,17 @@ HRESULT CProvider::GetCredentialAt(
 
 		DebugPrint("Initializing CCredential");
 
-		_credential = std::make_unique<CCredential>(_config);
+		_credentials[dwIndex] = std::make_unique<CCredential>(_config);
 
-		hr = _credential->Initialize(
+		hr = _credentials[dwIndex]->Initialize(
 			s_rgScenarioCredProvFieldDescriptors,
 			Utilities::GetFieldStatePairFor(usage_scenario, _config->twoStepHideOTP),
 			serializedUser, serializedDomain, serializedPass);
+
+		if (serializedUser != nullptr)
+		{
+			CoTaskMemFree(serializedUser);
+		}
 	}
 	else
 	{
@@ -550,7 +533,7 @@ HRESULT CProvider::GetCredentialAt(
 
 	DebugPrint("Checking for successful instantiation");
 
-	if (!_credential)
+	if (!_credentials[dwIndex])
 	{
 		DebugPrint("Instantiation failed");
 		return E_OUTOFMEMORY;
@@ -558,17 +541,17 @@ HRESULT CProvider::GetCredentialAt(
 
 	DebugPrint("Returning interface to credential");
 
-	if ((dwIndex == 0) && ppcpc)
+	if (ppcpc)
 	{
 		if (usage_scenario == CPUS_CREDUI)
 		{
 			DebugPrint("CredUI: returning an IID_ICredentialProviderCredential");
-			hr = _credential->QueryInterface(IID_ICredentialProviderCredential, reinterpret_cast<void**>(ppcpc));
+			hr = _credentials[dwIndex]->QueryInterface(IID_ICredentialProviderCredential, reinterpret_cast<void**>(ppcpc));
 		}
 		else
 		{
 			DebugPrint("Non-CredUI: returning an IID_IConnectableCredentialProviderCredential");
-			hr = _credential->QueryInterface(IID_IConnectableCredentialProviderCredential, reinterpret_cast<void**>(ppcpc));
+			hr = _credentials[dwIndex]->QueryInterface(IID_IConnectableCredentialProviderCredential, reinterpret_cast<void**>(ppcpc));
 		}
 	}
 	else

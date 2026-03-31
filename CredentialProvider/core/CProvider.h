@@ -28,6 +28,8 @@
 #include <Wtsapi32.h>						
 #include <Lm.h>
 #include <credentialprovider.h>
+#include <vector>
+#include <memory>
 
 #include <helpers.h>
 
@@ -112,11 +114,12 @@ private:
 	KERB_INTERACTIVE_UNLOCK_LOGON*          _pkiulSetSerialization;
 	DWORD                                   _dwSetSerializationCred; //index into rgpCredentials for the SetSerializationCred
 
-	std::unique_ptr<CCredential>			_credential;
+	std::vector<std::unique_ptr<CCredential>> _credentials;
 
 	std::shared_ptr<MultiOTPConfiguration>			_config;
 
 	ICredentialProviderUserArray *_pCredProviderUserArray;
+	int m_dwCredentialCount;
 
 };
 
