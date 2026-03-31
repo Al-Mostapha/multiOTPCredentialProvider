@@ -116,6 +116,7 @@ HRESULT CProvider::SetUsageScenario(
 
 	if (hr == S_OK)
 	{
+		_EnumerateAccountsForUsageScenario();
 		if (!Shared::IsRequiredForScenario(cpus, PROVIDER))
 		{
 			DebugPrint("CP is not enumerated because of the configuration for this scenario.");
@@ -127,6 +128,63 @@ HRESULT CProvider::SetUsageScenario(
 	DebugPrint(hr);
 
 	return hr;
+}
+
+
+void CProvider::_EnumerateAccountsForUsageScenario(){
+    // HRESULT hr = S_OK;
+    // _dwCredentialCount = 0;
+
+    // // ----------------------------------------------------------------
+    // // OPTION A: Enumerate local Windows user accounts via NetUserEnum
+    // // ----------------------------------------------------------------
+    // NET_API_STATUS  nStatus;
+    // LPUSER_INFO_0   pBuf = nullptr;
+    // DWORD           dwEntriesRead = 0, dwTotalEntries = 0;
+
+    // nStatus = NetUserEnum(
+    //     nullptr,            // local machine
+    //     0,                  // USER_INFO_0 — just the username
+    //     FILTER_NORMAL_ACCOUNT,
+    //     (LPBYTE*)&pBuf,
+    //     MAX_PREFERRED_LENGTH,
+    //     &dwEntriesRead,
+    //     &dwTotalEntries,
+    //     nullptr);
+
+    // if (nStatus == NERR_Success || nStatus == ERROR_MORE_DATA)
+    // {
+    //     for (DWORD i = 0; i < dwEntriesRead && _dwCredentialCount < MAX_CREDENTIALS; i++)
+    //     {
+    //         CMyCredential* pCred = new(std::nothrow) CMyCredential();
+    //         if (!pCred) { hr = E_OUTOFMEMORY; break; }
+
+    //         hr = pCred->Initialize(_cpus, pBuf[i].usri0_name);
+    //         if (SUCCEEDED(hr))
+    //         {
+    //             _rgpCredentials[_dwCredentialCount++] = pCred;
+    //         }
+    //         else
+    //         {
+    //             pCred->Release();
+    //         }
+    //     }
+    // }
+
+    // if (pBuf) NetApiBufferFree(pBuf);
+
+    // ----------------------------------------------------------------
+    // OPTION B: Enumerate from your own custom store (e.g. registry,
+    // file, or database) — swap in your own logic here instead.
+    // ----------------------------------------------------------------
+    // Example: read usernames from HKLM\SOFTWARE\MyApp\Users
+    //
+    // HKEY hKey;
+    // RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\MyApp\\Users", ...);
+    // RegEnumKeyEx(...) to iterate subkeys as usernames
+    // Create a CMyCredential for each found username
+
+    // return hr;
 }
 
 // SetSerialization takes the kind of buffer that you would normally return to LogonUI for
@@ -367,6 +425,7 @@ HRESULT CProvider::GetCredentialCount(
 	*pbAutoLogonWithDefault = FALSE;
 	if (_config->noDefault)
 	{
+		DebugPrint("-------- No default credential because of configuration");
 		*pdwDefault = CREDENTIAL_PROVIDER_NO_DEFAULT;
 	}
 
@@ -397,6 +456,8 @@ HRESULT CProvider::GetCredentialAt(
 )
 {
 	DebugPrint(__FUNCTION__);
+	DebugPrint("Index of requested tile:");
+	DebugPrint(dwIndex);
 
 	HRESULT hr = E_FAIL;
 	const CREDENTIAL_PROVIDER_USAGE_SCENARIO usage_scenario = _config->provider.cpu;
@@ -523,7 +584,7 @@ HRESULT CProvider::GetCredentialAt(
 // Boilerplate code to create our provider.
 HRESULT CSample_CreateInstance(__in REFIID riid, __deref_out void** ppv)
 {
-	//DebugPrint(__FUNCTION__);
+	DebugPrint(__FUNCTION__);
 	HRESULT hr;
 
 	CProvider* pProvider = new CProvider();
@@ -537,8 +598,8 @@ HRESULT CSample_CreateInstance(__in REFIID riid, __deref_out void** ppv)
 	{
 		hr = E_OUTOFMEMORY;
 	}
-	//DebugPrint("CSample_CreateInstance Result:");
-	//DebugPrint(hr);
+	DebugPrint("CSample_CreateInstance Result:");
+	DebugPrint(hr);
 
 	return hr;
 }

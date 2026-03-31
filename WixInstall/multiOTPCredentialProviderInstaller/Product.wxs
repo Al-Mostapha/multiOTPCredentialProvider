@@ -249,10 +249,10 @@
       
       <Directory Id="$(var.PlatformSystemFolder)" Name='SFolder'>
         <Component Id='CPLibrary' Guid='9A50EF1C-E1A5-4C53-9CE8-B0E7638257EC' Win64="$(var.Win64)">
-          <File Id='CredentialDLL' Name='multiOTPCredentialProvider.dll' Source='.\..\..\CredentialProvider\bin\$(var.BinFolder)\Release\multiOTPCredentialProvider.dll' KeyPath='yes'/>
+          <File Id='CredentialDLL' Name='multiOTPCredentialProvider.dll' Source='.\..\..\CredentialProvider\bin\$(var.BinFolder)\Debug\multiOTPCredentialProvider.dll' KeyPath='yes'/>
         </Component>
         <Component Id='FilterLibrary' Guid='FF8E4CA3-7FB9-41C4-8B26-D5401541E543' Win64="$(var.Win64)">
-          <File Id='FilterDLL' Name='multiOTPCredentialProviderFilter.dll' Source='.\..\..\CredentialProviderFilter\bin\$(var.BinFolder)\Release\multiOTPCredentialProviderFilter.dll' KeyPath='yes' />
+          <File Id='FilterDLL' Name='multiOTPCredentialProviderFilter.dll' Source='.\..\..\CredentialProviderFilter\bin\$(var.BinFolder)\Debug\multiOTPCredentialProviderFilter.dll' KeyPath='yes' />
         </Component>
       </Directory>
 

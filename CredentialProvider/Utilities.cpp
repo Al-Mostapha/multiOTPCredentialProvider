@@ -45,7 +45,7 @@ const std::wstring Utilities::texts[10][2] = {
 		{L"Password", L"Kennwort"},
 		{L"Old Password", L"Altes Kennwort"},
 		{L"New Password", L"Neues Kennwort"},
-		{L"Confirm password", L"Kennwort bestätigen"},
+		{L"Confirm password", L"Kennwort bestï¿½tigen"},
 		{L"Sign in to: ", L"Anmelden an: "},
 		{L"One-Time Password", L"Einmalpassword"},
 		{L"Wrong One-Time Password!", L"Falsches Einmalpasswort!"},
@@ -344,47 +344,49 @@ HRESULT Utilities::SetScenario(
 	__in ICredentialProviderCredentialEvents* pCPCE,
 	__in SCENARIO scenario)
 {
-	//DebugPrint(__FUNCTION__);
+	DebugPrint(__FUNCTION__);
 	HRESULT hr = S_OK;
 	wstring label = L"";
 
 	switch (scenario)
 	{
-	case SCENARIO::LOGON_BASE:
-		DebugPrint("SetScenario: LOGON_BASE");
-		hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioDisplayAllFields);
-		break;
-	case SCENARIO::UNLOCK_BASE:
-		DebugPrint("SetScenario: UNLOCK_BASE");
-		hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioUnlockPasswordOTP);
-		break;
-	case SCENARIO::SECOND_STEP:
-		DebugPrint("SetScenario: SECOND_STEP");
-		// Set the submit button next to the OTP field for the second step
-		_config->provider.pCredProvCredentialEvents->SetFieldSubmitButton(_config->provider.pCredProvCredential,FID_SUBMIT_BUTTON, FID_OTP);
-		_config->provider.pCredProvCredentialEvents->SetFieldString(pCredential, FID_OTP, L"");
-		hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioSecondStepOTP);
-		break;
-	case SCENARIO::CHANGE_PASSWORD:
-		DebugPrint("SetScenario: CHANGE_PASSWORD");
-		// Set the submit button next to the repeat pw field
-		_config->provider.pCredProvCredentialEvents->SetFieldSubmitButton(_config->provider.pCredProvCredential,
-			FID_SUBMIT_BUTTON, FID_NEW_PASS_2);
-		hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioPasswordChange);
-		break;
-	case SCENARIO::UNLOCK_TWO_STEP:
-		DebugPrint("SetScenario: UNLOCK_TWO_STEP");
-		hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioUnlockFirstStepPassword);
-		break;
-	case SCENARIO::LOGON_TWO_STEP:
-		DebugPrint("SetScenario: LOGON_TWO_STEP");
-		hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioLogonFirstStepUserLDAP);
-		break;
-	case SCENARIO::NO_CHANGE:
-		DebugPrint("SetScenario: NO_CHANGE");
-	default:
-		break;
+		case SCENARIO::LOGON_BASE:
+			DebugPrint("SetScenario: LOGON_BASE");
+			hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioDisplayAllFields);
+			break;
+		case SCENARIO::UNLOCK_BASE:
+			DebugPrint("SetScenario: UNLOCK_BASE");
+			hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioUnlockPasswordOTP);
+			break;
+		case SCENARIO::SECOND_STEP:
+			DebugPrint("SetScenario: SECOND_STEP");
+			// Set the submit button next to the OTP field for the second step
+			_config->provider.pCredProvCredentialEvents->SetFieldSubmitButton(_config->provider.pCredProvCredential,FID_SUBMIT_BUTTON, FID_OTP);
+			_config->provider.pCredProvCredentialEvents->SetFieldString(pCredential, FID_OTP, L"");
+			hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioSecondStepOTP);
+			break;
+		case SCENARIO::CHANGE_PASSWORD:
+			DebugPrint("SetScenario: CHANGE_PASSWORD");
+			// Set the submit button next to the repeat pw field
+			_config->provider.pCredProvCredentialEvents->SetFieldSubmitButton(_config->provider.pCredProvCredential,
+				FID_SUBMIT_BUTTON, FID_NEW_PASS_2);
+			hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioPasswordChange);
+			break;
+		case SCENARIO::UNLOCK_TWO_STEP:
+			DebugPrint("SetScenario: UNLOCK_TWO_STEP");
+			hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioUnlockFirstStepPassword);
+			break;
+		case SCENARIO::LOGON_TWO_STEP:
+			DebugPrint("SetScenario: LOGON_TWO_STEP");
+			hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioLogonFirstStepUserLDAP);
+			break;
+		case SCENARIO::NO_CHANGE:
+			DebugPrint("SetScenario: NO_CHANGE");
+		default:
+			break;
 	}
+
+
 
 	if (_config->credential.passwordMustChange)
 	{
@@ -836,6 +838,7 @@ const FIELD_STATE_PAIR* Utilities::GetFieldStatePairFor(
 	CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus,
 	bool twoStepHideOTP)
 {
+	return s_rgScenarioSecondStepOTP;
 	if (cpus == CPUS_UNLOCK_WORKSTATION)
 	{
 		return twoStepHideOTP ? s_rgScenarioUnlockFirstStepPassword : s_rgScenarioUnlockPasswordOTP;
@@ -853,14 +856,17 @@ HRESULT Utilities::ResetScenario(
 	DebugPrint(__FUNCTION__);
 
 	// 2 step progress is reset aswell, therefore put the submit button next to the password field again
-	_config->isSecondStep = false;	
+	_config->isSecondStep = false;
 
 	if (_config->provider.cpu == CPUS_UNLOCK_WORKSTATION)
 	{
 		if (_config->twoStepHideOTP)
 		{
+			// SetScenario(pSelf, pCredProvCredentialEvents,
+			// 	SCENARIO::UNLOCK_TWO_STEP);
+			DebugPrint("ResetScenario: UNLOCK_TWO_STEP");
 			SetScenario(pSelf, pCredProvCredentialEvents,
-				SCENARIO::UNLOCK_TWO_STEP);
+				SCENARIO::UNLOCK_BASE);
 		}
 		else
 		{
@@ -872,7 +878,10 @@ HRESULT Utilities::ResetScenario(
 	{
 		if (_config->twoStepHideOTP)
 		{
+			//-- SetScenario(pSelf, pCredProvCredentialEvents, SCENARIO::LOGON_TWO_STEP);
 			SetScenario(pSelf, pCredProvCredentialEvents, SCENARIO::LOGON_TWO_STEP);
+			_config->provider.pCredProvCredentialEvents->SetFieldSubmitButton(_config->provider.pCredProvCredential, FID_SUBMIT_BUTTON, FID_LDAP_PASS);
+
 		}
 		else
 		{

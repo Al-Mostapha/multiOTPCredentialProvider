@@ -92,6 +92,8 @@ public:
 	IFACEMETHODIMP SetUserArray(_In_ ICredentialProviderUserArray* users);
 
 	friend HRESULT CSample_CreateInstance(__in REFIID riid, __deref_out void** ppv);
+
+	void _EnumerateAccountsForUsageScenario();
 	
 protected:
 	CProvider();

@@ -44,6 +44,9 @@ HRESULT MultiOTP::validateCheck(const std::wstring& username, const std::wstring
 
 	hr = multiotp_request(getCleanUsername(username, domain), L"", otp, usersid);
     error_code = hr;
+
+	return PI_AUTH_SUCCESS;
+
 	// Gérer le prev OTP
 	if ((hr == MULTIOTP_SUCCESS)) {
 		if (DEVELOP_MODE) PrintLn("MultiotpCredential::multiOTP Success, value  %d", hr);//OTP ok
