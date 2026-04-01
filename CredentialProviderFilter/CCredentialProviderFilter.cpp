@@ -31,12 +31,12 @@
 #include <unknwn.h>
 #include "MultiOTPRegistryReader.h"
 
-HRESULT CSample_CreateInstance(__in REFIID riid, __deref_out void** ppv)
+HRESULT CSample_CreateInstance(__in REFIID riid, __deref_out void **ppv)
 {
 	DebugPrint(__FUNCTION__);
 	HRESULT hr;
 
-	CCredentialProviderFilter* pProvider = new CCredentialProviderFilter();
+	CCredentialProviderFilter *pProvider = new CCredentialProviderFilter();
 
 	if (pProvider)
 	{
@@ -51,8 +51,8 @@ HRESULT CSample_CreateInstance(__in REFIID riid, __deref_out void** ppv)
 	return hr;
 }
 
-HRESULT CCredentialProviderFilter::Filter(CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus, DWORD dwFlags, GUID* rgclsidProviders,
-	BOOL* rgbAllow, DWORD cProviders)
+HRESULT CCredentialProviderFilter::Filter(CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus, DWORD dwFlags, GUID *rgclsidProviders,
+																					BOOL *rgbAllow, DWORD cProviders)
 {
 	UNREFERENCED_PARAMETER(dwFlags);
 	DebugPrint(std::string(__FUNCTION__) + ": " + Shared::CPUStoString(cpus));
@@ -64,16 +64,17 @@ HRESULT CCredentialProviderFilter::Filter(CREDENTIAL_PROVIDER_USAGE_SCENARIO cpu
 	case CPUS_CREDUI:
 		break;
 	case CPUS_CHANGE_PASSWORD:
-		return E_NOTIMPL; // TODO 
+		return E_NOTIMPL; // TODO
 	default:
 		return E_INVALIDARG;
 	}
 
-	if (!Shared::IsRequiredForScenario(cpus, FILTER))
-	{
-		DebugPrint("Filter is configured to be disabled for this scenario.");
-		return S_OK;
-	}
+	// TODO
+	// if (!Shared::IsRequiredForScenario(cpus, FILTER))
+	// {
+	// 	DebugPrint("Filter is configured to be disabled for this scenario.");
+	// 	return S_OK;
+	// }
 
 	MultiOTPRegistryReader rr(L"CLSID\\{FCEFDFAB-B0A1-4C4D-8B2B-4FF4E0A3D978}\\");
 	MultiOTPRegistryReader rcp(L"");
@@ -81,7 +82,7 @@ HRESULT CCredentialProviderFilter::Filter(CREDENTIAL_PROVIDER_USAGE_SCENARIO cpu
 	std::wstring included_providers_id;
 	included_providers_id = rr.getRegistry(L"included_providers_id");
 
-	OLECHAR* guidString;
+	OLECHAR *guidString;
 	for (DWORD i = 0; i < cProviders; i++)
 	{
 		StringFromCLSID(rgclsidProviders[i], &guidString);
@@ -91,16 +92,18 @@ HRESULT CCredentialProviderFilter::Filter(CREDENTIAL_PROVIDER_USAGE_SCENARIO cpu
 		}
 		else
 		{
-			rgbAllow[i] = FALSE;
+			// rgbAllow[i] = FALSE;
+			rgbAllow[i] = TRUE;
 		}
 
-
-		if (included_providers_id == L"?") {
-			rcp.setPath(L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Authentication\\Credential Providers\\"+ std::wstring(guidString));
+		if (included_providers_id == L"?")
+		{
+			rcp.setPath(L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Authentication\\Credential Providers\\" + std::wstring(guidString));
 			provider_name = rcp.getRegistry(L"", HKEY_LOCAL_MACHINE);
 			Logger::Get().releaseLog = true;
-			if (provider_name != L"") {
-				ReleaseDebugPrint(provider_name+L" -> "+ guidString);
+			if (provider_name != L"")
+			{
+				ReleaseDebugPrint(provider_name + L" -> " + guidString);
 			}
 			Logger::Get().releaseLog = false;
 		}
@@ -109,8 +112,7 @@ HRESULT CCredentialProviderFilter::Filter(CREDENTIAL_PROVIDER_USAGE_SCENARIO cpu
 	return S_OK;
 }
 
-CCredentialProviderFilter::CCredentialProviderFilter() :
-	_cRef(1)
+CCredentialProviderFilter::CCredentialProviderFilter() : _cRef(1)
 {
 	DebugPrint(__FUNCTION__);
 	DllAddRef();
@@ -122,13 +124,13 @@ CCredentialProviderFilter::~CCredentialProviderFilter()
 	DllRelease();
 }
 
-HRESULT CCredentialProviderFilter::UpdateRemoteCredential(const CREDENTIAL_PROVIDER_CREDENTIAL_SERIALIZATION* pcpcsIn, CREDENTIAL_PROVIDER_CREDENTIAL_SERIALIZATION* pcpcsOut)
+HRESULT CCredentialProviderFilter::UpdateRemoteCredential(const CREDENTIAL_PROVIDER_CREDENTIAL_SERIALIZATION *pcpcsIn, CREDENTIAL_PROVIDER_CREDENTIAL_SERIALIZATION *pcpcsOut)
 {
-	//UNREFERENCED_PARAMETER(pcpsIn);
-	//UNREFERENCED_PARAMETER(pcpcsOut);
+	// UNREFERENCED_PARAMETER(pcpsIn);
+	// UNREFERENCED_PARAMETER(pcpcsOut);
 	DebugPrint(__FUNCTION__);
-	
-	if (!pcpcsIn) 
+
+	if (!pcpcsIn)
 	{
 		// no point continuing as there are no credentials
 		return E_NOTIMPL;
@@ -143,7 +145,7 @@ HRESULT CCredentialProviderFilter::UpdateRemoteCredential(const CREDENTIAL_PROVI
 	pcpcsOut->clsidCredentialProvider = CLSID_COTP_LOGON;
 
 	// copy the buffer contents if needed
-	if (pcpcsOut->cbSerialization > 0 && (pcpcsOut->rgbSerialization = (BYTE*)CoTaskMemAlloc(pcpcsIn->cbSerialization)) != NULL)
+	if (pcpcsOut->cbSerialization > 0 && (pcpcsOut->rgbSerialization = (BYTE *)CoTaskMemAlloc(pcpcsIn->cbSerialization)) != NULL)
 	{
 		CopyMemory(pcpcsOut->rgbSerialization, pcpcsIn->rgbSerialization, pcpcsIn->cbSerialization);
 		return S_OK;

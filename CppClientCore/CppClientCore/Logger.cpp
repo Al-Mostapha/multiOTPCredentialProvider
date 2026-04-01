@@ -72,6 +72,7 @@ void Logger::logS(const string& message, const char* file, int line, bool logInP
 #else
 	//std::cout << fullMessage << std::endl;
 #endif // !_OUTPUT_TO_COUT
+std::cout << fullMessage << std::endl;
 }
 
 void Logger::logW(const wstring& message, const char* file, int line, bool logInProduction)

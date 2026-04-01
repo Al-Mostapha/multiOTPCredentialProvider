@@ -1096,104 +1096,104 @@ HRESULT SplitDomainAndUsername(_In_ PCWSTR pszQualifiedUserName, _Outptr_result_
 
 
 // Begin extra code (Remote Session)
-BOOL IsRemoteSession(void)
-{
+// BOOL IsRemoteSession(void)
+// {
 
-    LPTSTR ppBuffer = NULL;
-    DWORD  pBytesReturned = 0;
-    PWTS_CLIENT_ADDRESS pWTSCA = NULL;
+//     LPTSTR ppBuffer = NULL;
+//     DWORD  pBytesReturned = 0;
+//     PWTS_CLIENT_ADDRESS pWTSCA = NULL;
 
-    BOOL fIsRemoteSession = FALSE;
+//     BOOL fIsRemoteSession = FALSE;
 
-    if (GetSystemMetrics(SM_REMOTESESSION))
-    {
-        fIsRemoteSession = TRUE;
-    }
-    else {
-        HKEY hRegKey = NULL;
-        LONG lResult;
+//     if (GetSystemMetrics(SM_REMOTESESSION))
+//     {
+//         fIsRemoteSession = TRUE;
+//     }
+//     else {
+//         HKEY hRegKey = NULL;
+//         LONG lResult;
 
-        lResult = RegOpenKeyEx(
-            HKEY_LOCAL_MACHINE,
-            TERMINAL_SERVER_KEY,
-            0, // ulOptions
-            KEY_READ,
-            &hRegKey
-        );
+//         lResult = RegOpenKeyEx(
+//             HKEY_LOCAL_MACHINE,
+//             TERMINAL_SERVER_KEY,
+//             0, // ulOptions
+//             KEY_READ,
+//             &hRegKey
+//         );
 
-        if (lResult == ERROR_SUCCESS)
-        {
-            DWORD dwGlassSessionId;
-            DWORD cbGlassSessionId = sizeof(dwGlassSessionId);
-            DWORD dwType;
+//         if (lResult == ERROR_SUCCESS)
+//         {
+//             DWORD dwGlassSessionId;
+//             DWORD cbGlassSessionId = sizeof(dwGlassSessionId);
+//             DWORD dwType;
 
-            lResult = RegQueryValueEx(
-                hRegKey,
-                GLASS_SESSION_ID,
-                NULL, // lpReserved
-                &dwType,
-                (BYTE*)&dwGlassSessionId,
-                &cbGlassSessionId
-            );
+//             lResult = RegQueryValueEx(
+//                 hRegKey,
+//                 GLASS_SESSION_ID,
+//                 NULL, // lpReserved
+//                 &dwType,
+//                 (BYTE*)&dwGlassSessionId,
+//                 &cbGlassSessionId
+//             );
 
-            if (lResult == ERROR_SUCCESS)
-            {
-                DWORD dwCurrentSessionId;
+//             if (lResult == ERROR_SUCCESS)
+//             {
+//                 DWORD dwCurrentSessionId;
 
-                if (ProcessIdToSessionId(GetCurrentProcessId(), &dwCurrentSessionId))
-                {
-                    fIsRemoteSession = (dwCurrentSessionId != dwGlassSessionId);
-                }
-            }
-        }
+//                 if (ProcessIdToSessionId(GetCurrentProcessId(), &dwCurrentSessionId))
+//                 {
+//                     fIsRemoteSession = (dwCurrentSessionId != dwGlassSessionId);
+//                 }
+//             }
+//         }
 
-        if (hRegKey)
-        {
-            RegCloseKey(hRegKey);
-        }
-    }
+//         if (hRegKey)
+//         {
+//             RegCloseKey(hRegKey);
+//         }
+//     }
 
-    if (fIsRemoteSession) {
-        if (WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE, WTS_CURRENT_SESSION, WTSClientAddress, &ppBuffer, &pBytesReturned)) {
-            pWTSCA = (PWTS_CLIENT_ADDRESS)ppBuffer;
+//     if (fIsRemoteSession) {
+//         if (WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE, WTS_CURRENT_SESSION, WTSClientAddress, &ppBuffer, &pBytesReturned)) {
+//             pWTSCA = (PWTS_CLIENT_ADDRESS)ppBuffer;
 
-            // Address family can be only:
-            // AF_UNSPEC  = 0 (unspecified)
-            // AF_INET    = 2 (internetwork: UDP, TCP, etc.)
-            // AF_IPX     = AF_NS = 6 (IPX protocols: IPX, SPX, etc.)
-            // AF_NETBIOS = 17 (NetBios-style addresses)
+//             // Address family can be only:
+//             // AF_UNSPEC  = 0 (unspecified)
+//             // AF_INET    = 2 (internetwork: UDP, TCP, etc.)
+//             // AF_IPX     = AF_NS = 6 (IPX protocols: IPX, SPX, etc.)
+//             // AF_NETBIOS = 17 (NetBios-style addresses)
 
-            CString familyStr; familyStr.Empty();
+//             CString familyStr; familyStr.Empty();
 
-            switch (pWTSCA->AddressFamily)
-            {
-            case 0:
-                familyStr = "AF_UNSPEC";
-                break;
-            case 2:
-                familyStr = "AF_INET";
-                break;
-            case 6:
-                familyStr = "AF_IPX";
-                break;
-            case 17:
-                familyStr = "AF_NETBIOS";
-                break;
-            }
+//             switch (pWTSCA->AddressFamily)
+//             {
+//             case 0:
+//                 familyStr = "AF_UNSPEC";
+//                 break;
+//             case 2:
+//                 familyStr = "AF_INET";
+//                 break;
+//             case 6:
+//                 familyStr = "AF_IPX";
+//                 break;
+//             case 17:
+//                 familyStr = "AF_NETBIOS";
+//                 break;
+//             }
 
-            // The client local IP address is located in bytes 2, 3, 4, and 5.
-            // The other bytes are not used.
-            // If AddressFamily returns AF_UNSPEC, the first byte in Address
-            // is initialized to zero.
+//             // The client local IP address is located in bytes 2, 3, 4, and 5.
+//             // The other bytes are not used.
+//             // If AddressFamily returns AF_UNSPEC, the first byte in Address
+//             // is initialized to zero.
 
-            char IPaddress[50];
-            sprintf_s(IPaddress, "%u.%u.%u.%u", pWTSCA->Address[2], pWTSCA->Address[3], pWTSCA->Address[4], pWTSCA->Address[5]);
-            if (DEVELOP_MODE) PrintLn(IPaddress);
-        }
-        WTSFreeMemory(ppBuffer);
-    }
-    return fIsRemoteSession;
-}
+//             char IPaddress[50];
+//             sprintf_s(IPaddress, "%u.%u.%u.%u", pWTSCA->Address[2], pWTSCA->Address[3], pWTSCA->Address[4], pWTSCA->Address[5]);
+//             if (DEVELOP_MODE) PrintLn(IPaddress);
+//         }
+//         WTSFreeMemory(ppBuffer);
+//     }
+//     return fIsRemoteSession;
+// }
 // End extra code (Remote Session)
 
 

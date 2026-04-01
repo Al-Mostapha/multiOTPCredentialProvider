@@ -33,11 +33,10 @@
 
 using namespace std;
 
-CProvider::CProvider() :
-	_cRef(1),
-	_pkiulSetSerialization(nullptr),
-	_dwSetSerializationCred(CREDENTIAL_PROVIDER_NO_DEFAULT),
-	_pCredProviderUserArray(nullptr)
+CProvider::CProvider() : _cRef(1),
+												 _pkiulSetSerialization(nullptr),
+												 _dwSetSerializationCred(CREDENTIAL_PROVIDER_NO_DEFAULT),
+												 _pCredProviderUserArray(nullptr)
 {
 	DllAddRef();
 
@@ -47,7 +46,7 @@ CProvider::CProvider() :
 
 CProvider::~CProvider()
 {
-	for (auto& cred : _credentials)
+	for (auto &cred : _credentials)
 	{
 		if (cred)
 		{
@@ -61,7 +60,7 @@ CProvider::~CProvider()
 		_pCredProviderUserArray->Release();
 		_pCredProviderUserArray = nullptr;
 	}
-	
+
 	DllRelease();
 }
 
@@ -69,27 +68,25 @@ void CProvider::_CleanupSetSerialization()
 {
 	DebugPrint(__FUNCTION__);
 
-
 	if (_pkiulSetSerialization)
 	{
-		KERB_INTERACTIVE_LOGON* pkil = &_pkiulSetSerialization->Logon;
+		KERB_INTERACTIVE_LOGON *pkil = &_pkiulSetSerialization->Logon;
 		SecureZeroMemory(_pkiulSetSerialization,
-			sizeof(*_pkiulSetSerialization) +
-			pkil->LogonDomainName.MaximumLength +
-			pkil->UserName.MaximumLength +
-			pkil->Password.MaximumLength);
+										 sizeof(*_pkiulSetSerialization) +
+												 pkil->LogonDomainName.MaximumLength +
+												 pkil->UserName.MaximumLength +
+												 pkil->Password.MaximumLength);
 		HeapFree(GetProcessHeap(), 0, _pkiulSetSerialization);
 	}
 }
 
 // SetUsageScenario is the provider's cue that it's going to be asked for tiles
-// in a subsequent call.  
+// in a subsequent call.
 //
 // This sample only handles the logon and unlock scenarios as those are the most common.
 HRESULT CProvider::SetUsageScenario(
-	__in CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus,
-	__in DWORD dwFlags
-)
+		__in CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus,
+		__in DWORD dwFlags)
 {
 #ifdef _DEBUG
 	DebugPrint(string(__FUNCTION__) + ": " + Shared::CPUStoString(cpus));
@@ -134,8 +131,6 @@ HRESULT CProvider::SetUsageScenario(
 	return hr;
 }
 
-
-
 // SetSerialization takes the kind of buffer that you would normally return to LogonUI for
 // an authentication attempt. It's the opposite of ICredentialProviderCredential::GetSerialization.
 // GetSerialization is implement by a credential and serializes that credential.  Instead,
@@ -143,15 +138,14 @@ HRESULT CProvider::SetUsageScenario(
 //
 // SetSerialization is called for two main scenarios.  The first scenario is in the credui case
 // where it is prepopulating a tile with credentials that the user chose to store in the OS.
-// The second situation is in a remote logon case where the remote client may wish to 
+// The second situation is in a remote logon case where the remote client may wish to
 // prepopulate a tile with a username, or in some cases, completely populate the tile and
 // use it to logon without showing any UI.
 //
 // Since this sample doesn't support CPUS_CREDUI, we have not implemented the credui specific
 // pieces of this function.  For information on that, please see the credUI sample.
 HRESULT CProvider::SetSerialization(
-	__in const CREDENTIAL_PROVIDER_CREDENTIAL_SERIALIZATION* pcpcs
-)
+		__in const CREDENTIAL_PROVIDER_CREDENTIAL_SERIALIZATION *pcpcs)
 {
 	DebugPrint(__FUNCTION__);
 	HRESULT result = E_NOTIMPL;
@@ -168,8 +162,7 @@ HRESULT CProvider::SetSerialization(
 	{
 		DebugPrint("CPUS_CREDUI");
 
-		if (((_config->provider.credPackFlags & CREDUIWIN_IN_CRED_ONLY) || (_config->provider.credPackFlags & CREDUIWIN_AUTHPACKAGE_ONLY))
-			&& authPackage != pcpcs->ulAuthenticationPackage)
+		if (((_config->provider.credPackFlags & CREDUIWIN_IN_CRED_ONLY) || (_config->provider.credPackFlags & CREDUIWIN_AUTHPACKAGE_ONLY)) && authPackage != pcpcs->ulAuthenticationPackage)
 		{
 			DebugPrint("authPackage invalid");
 			return E_INVALIDARG;
@@ -184,26 +177,26 @@ HRESULT CProvider::SetSerialization(
 
 	if (authPackage == pcpcs->ulAuthenticationPackage && pcpcs->cbSerialization > 0 && pcpcs->rgbSerialization)
 	{
-		KERB_INTERACTIVE_UNLOCK_LOGON* pkil = (KERB_INTERACTIVE_UNLOCK_LOGON*)pcpcs->rgbSerialization;
+		KERB_INTERACTIVE_UNLOCK_LOGON *pkil = (KERB_INTERACTIVE_UNLOCK_LOGON *)pcpcs->rgbSerialization;
 		if (pkil->Logon.MessageType == KerbInteractiveLogon)
 		{
 			if (pkil->Logon.UserName.Length && pkil->Logon.UserName.Buffer)
 			{
-				BYTE* nativeSerialization = nullptr;
+				BYTE *nativeSerialization = nullptr;
 				DWORD nativeSerializationSize = 0;
 				DebugPrint("Serialization found from remote");
 
 				if (_config->provider.credPackFlags == CPUS_CREDUI && (_config->provider.credPackFlags & CREDUIWIN_PACK_32_WOW))
 				{
 					if (!SUCCEEDED(KerbInteractiveUnlockLogonRepackNative(pcpcs->rgbSerialization, pcpcs->cbSerialization,
-						&nativeSerialization, &nativeSerializationSize)))
+																																&nativeSerialization, &nativeSerializationSize)))
 					{
 						return result;
 					}
 				}
 				else
 				{
-					nativeSerialization = (BYTE*)LocalAlloc(LMEM_ZEROINIT, pcpcs->cbSerialization);
+					nativeSerialization = (BYTE *)LocalAlloc(LMEM_ZEROINIT, pcpcs->cbSerialization);
 					nativeSerializationSize = pcpcs->cbSerialization;
 
 					if (!nativeSerialization)
@@ -214,14 +207,14 @@ HRESULT CProvider::SetSerialization(
 					CopyMemory(nativeSerialization, pcpcs->rgbSerialization, pcpcs->cbSerialization);
 				}
 
-				KerbInteractiveUnlockLogonUnpackInPlace((KERB_INTERACTIVE_UNLOCK_LOGON*)nativeSerialization, nativeSerializationSize);
+				KerbInteractiveUnlockLogonUnpackInPlace((KERB_INTERACTIVE_UNLOCK_LOGON *)nativeSerialization, nativeSerializationSize);
 
 				if (_pkiulSetSerialization)
 				{
 					LocalFree(_pkiulSetSerialization);
 				}
 
-				_pkiulSetSerialization = (KERB_INTERACTIVE_UNLOCK_LOGON*)nativeSerialization;
+				_pkiulSetSerialization = (KERB_INTERACTIVE_UNLOCK_LOGON *)nativeSerialization;
 
 				result = S_OK;
 			}
@@ -235,9 +228,8 @@ HRESULT CProvider::SetSerialization(
 // Called by LogonUI to give you a callback.  Providers often use the callback if they
 // some event would cause them to need to change the set of tiles that they enumerated
 HRESULT CProvider::Advise(
-	__in ICredentialProviderEvents* pcpe,
-	__in UINT_PTR upAdviseContext
-)
+		__in ICredentialProviderEvents *pcpe,
+		__in UINT_PTR upAdviseContext)
 {
 	DebugPrint(__FUNCTION__);
 
@@ -274,11 +266,10 @@ HRESULT CProvider::UnAdvise()
 // does mean that all your tiles must have the same number of fields.
 // This number must include both visible and invisible fields. If you want a tile
 // to have different fields from the other tiles you enumerate for a given usage
-// scenario you must include them all in this count and then hide/show them as desired 
+// scenario you must include them all in this count and then hide/show them as desired
 // using the field descriptors.
 HRESULT CProvider::GetFieldDescriptorCount(
-	__out DWORD* pdwCount
-)
+		__out DWORD *pdwCount)
 {
 	DebugPrint(__FUNCTION__);
 
@@ -289,11 +280,10 @@ HRESULT CProvider::GetFieldDescriptorCount(
 
 // Gets the field descriptor for a particular field
 HRESULT CProvider::GetFieldDescriptorAt(
-	__in DWORD dwIndex,
-	__deref_out CREDENTIAL_PROVIDER_FIELD_DESCRIPTOR** ppcpfd
-)
+		__in DWORD dwIndex,
+		__deref_out CREDENTIAL_PROVIDER_FIELD_DESCRIPTOR **ppcpfd)
 {
-	//DebugPrintLn(__FUNCTION__);
+	// DebugPrintLn(__FUNCTION__);
 	HRESULT hr = E_FAIL;
 	if (!_config->provider.cpu)
 	{
@@ -332,7 +322,8 @@ HRESULT CProvider::GetFieldDescriptorAt(
 			if (label.empty())
 				label = Utilities::GetTranslatedText(TEXT_OTP);
 			break;
-		default: break;
+		default:
+			break;
 		}
 
 		if (!label.empty())
@@ -341,7 +332,7 @@ HRESULT CProvider::GetFieldDescriptorAt(
 		}
 
 		hr = FieldDescriptorCoAllocCopy(s_rgScenarioCredProvFieldDescriptors[dwIndex],
-			ppcpfd);
+																		ppcpfd);
 	}
 	else
 	{
@@ -354,7 +345,7 @@ HRESULT CProvider::GetFieldDescriptorAt(
 // Sets pdwCount to the number of tiles that we wish to show at this time.
 // Sets pdwDefault to the index of the tile which should be used as the default.
 //
-// The default tile is the tile which will be shown in the zoomed view by default. If 
+// The default tile is the tile which will be shown in the zoomed view by default. If
 // more than one provider specifies a default tile the behavior is the last used cred
 // prov gets to specify the default tile to be displayed
 //
@@ -362,10 +353,9 @@ HRESULT CProvider::GetFieldDescriptorAt(
 // on the credential you've specified as the default and will submit that credential
 // for authentication without showing any further UI.
 HRESULT CProvider::GetCredentialCount(
-	__out DWORD* pdwCount,
-	__out_range(< , *pdwCount) DWORD* pdwDefault,
-	__out BOOL* pbAutoLogonWithDefault
-)
+		__out DWORD *pdwCount,
+		__out_range(<, *pdwCount) DWORD *pdwDefault,
+		__out BOOL *pbAutoLogonWithDefault)
 {
 	DebugPrint(__FUNCTION__);
 
@@ -389,16 +379,16 @@ HRESULT CProvider::GetCredentialCount(
 	{
 		*pdwCount = 1;
 		*pdwDefault = 0;
-		_config->isRemoteSession = Shared::IsCurrentSessionRemote();
-		if (_config->isRemoteSession && !_config->twoStepHideOTP)
-		{
-			*pbAutoLogonWithDefault = FALSE;
-		}
-		else
-		{
-			*pdwDefault = 0;
-			*pbAutoLogonWithDefault = TRUE;
-		}
+		// _config->isRemoteSession = Shared::IsCurrentSessionRemote();
+		// if (_config->isRemoteSession && !_config->twoStepHideOTP)
+		// {
+		// 	*pbAutoLogonWithDefault = FALSE;
+		// }
+		// else
+		// {
+		*pdwDefault = 0;
+		*pbAutoLogonWithDefault = TRUE;
+		// }
 	}
 
 	return S_OK;
@@ -407,9 +397,8 @@ HRESULT CProvider::GetCredentialCount(
 // Returns the credential at the index specified by dwIndex. This function is called by logonUI to enumerate
 // the tiles.
 HRESULT CProvider::GetCredentialAt(
-	__in DWORD dwIndex,
-	__deref_out ICredentialProviderCredential** ppcpc
-)
+		__in DWORD dwIndex,
+		__deref_out ICredentialProviderCredential **ppcpc)
 {
 	DebugPrint(__FUNCTION__);
 	DebugPrint("Index of requested tile:");
@@ -439,10 +428,10 @@ HRESULT CProvider::GetCredentialAt(
 
 			DWORD dwLen = 0;
 			if (!WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE,
-				WTS_CURRENT_SESSION,
-				WTSUserName,
-				&serializedUser,
-				&dwLen))
+																			WTS_CURRENT_SESSION,
+																			WTSUserName,
+																			&serializedUser,
+																			&dwLen))
 			{
 				serializedUser = nullptr;
 			}
@@ -453,10 +442,10 @@ HRESULT CProvider::GetCredentialAt(
 
 				dwLen = 0;
 				if (!WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE,
-					WTS_CURRENT_SESSION,
-					WTSDomainName,
-					&serializedDomain,
-					&dwLen))
+																				WTS_CURRENT_SESSION,
+																				WTSDomainName,
+																				&serializedDomain,
+																				&dwLen))
 				{
 					serializedDomain = nullptr;
 				}
@@ -464,6 +453,7 @@ HRESULT CProvider::GetCredentialAt(
 		}
 		else if (usage_scenario == CPUS_LOGON || usage_scenario == CPUS_CREDUI)
 		{
+			// Entered
 			// For CPUS_LOGON, look up the username for this tile from the user array
 			if (usage_scenario == CPUS_LOGON && _pCredProviderUserArray != nullptr && serializedUser == nullptr)
 			{
@@ -472,17 +462,23 @@ HRESULT CProvider::GetCredentialAt(
 
 				if (dwIndex < dwUserCount)
 				{
-					ICredentialProviderUser* pUser = nullptr;
+					ICredentialProviderUser *pUser = nullptr;
 					if (SUCCEEDED(_pCredProviderUserArray->GetAt(dwIndex, &pUser)) && pUser != nullptr)
 					{
 						PWSTR pwszUsername = nullptr;
 						if (SUCCEEDED(pUser->GetStringValue(PKEY_Identity_QualifiedUserName, &pwszUsername)) && pwszUsername != nullptr)
 						{
+							// Entered
 							DebugPrint("Got user from user array:");
 							DebugPrint(pwszUsername);
 							serializedUser = pwszUsername; // ownership transferred; CoTaskMemFree below
 						}
 						pUser->Release();
+					}
+					else
+					{
+						DebugPrint("----- Failed to get user from user array");
+						serializedUser = nullptr;
 					}
 				}
 			}
@@ -493,11 +489,18 @@ HRESULT CProvider::GetCredentialAt(
 
 				NETSETUP_JOIN_STATUS join_status;
 				if (!NetGetJoinInformation(
-					nullptr,
-					&serializedDomain,
-					&join_status) == NERR_Success || join_status == NetSetupUnjoined || join_status == NetSetupUnknownStatus || join_status == NetSetupWorkgroupName)
+								nullptr,
+								&serializedDomain,
+								&join_status) == NERR_Success ||
+						join_status == NetSetupUnjoined || join_status == NetSetupUnknownStatus || join_status == NetSetupWorkgroupName)
 				{
 					serializedDomain = nullptr;
+					DebugPrint("--------------- Failed to get domain from computer information");
+				}
+				else
+				{
+					DebugPrint("--------------- Got domain from computer information: ");
+					DebugPrint(serializedDomain);
 				}
 				DebugPrint("Found domain:");
 				DebugPrint(serializedDomain);
@@ -509,9 +512,9 @@ HRESULT CProvider::GetCredentialAt(
 		_credentials[dwIndex] = std::make_unique<CCredential>(_config);
 
 		hr = _credentials[dwIndex]->Initialize(
-			s_rgScenarioCredProvFieldDescriptors,
-			Utilities::GetFieldStatePairFor(usage_scenario, _config->twoStepHideOTP),
-			serializedUser, serializedDomain, serializedPass);
+				s_rgScenarioCredProvFieldDescriptors,
+				Utilities::GetFieldStatePairFor(usage_scenario, _config->twoStepHideOTP),
+				serializedUser, serializedDomain, serializedPass);
 
 		if (serializedUser != nullptr)
 		{
@@ -546,12 +549,12 @@ HRESULT CProvider::GetCredentialAt(
 		if (usage_scenario == CPUS_CREDUI)
 		{
 			DebugPrint("CredUI: returning an IID_ICredentialProviderCredential");
-			hr = _credentials[dwIndex]->QueryInterface(IID_ICredentialProviderCredential, reinterpret_cast<void**>(ppcpc));
+			hr = _credentials[dwIndex]->QueryInterface(IID_ICredentialProviderCredential, reinterpret_cast<void **>(ppcpc));
 		}
 		else
 		{
 			DebugPrint("Non-CredUI: returning an IID_IConnectableCredentialProviderCredential");
-			hr = _credentials[dwIndex]->QueryInterface(IID_IConnectableCredentialProviderCredential, reinterpret_cast<void**>(ppcpc));
+			hr = _credentials[dwIndex]->QueryInterface(IID_IConnectableCredentialProviderCredential, reinterpret_cast<void **>(ppcpc));
 		}
 	}
 	else
@@ -565,12 +568,17 @@ HRESULT CProvider::GetCredentialAt(
 }
 
 // Boilerplate code to create our provider.
-HRESULT CSample_CreateInstance(__in REFIID riid, __deref_out void** ppv)
+HRESULT CSample_CreateInstance(__in REFIID riid, __deref_out void **ppv)
 {
+	BOOL ret = AllocConsole();
+	freopen("CONIN$", "r", stdin);
+	freopen("CONOUT$", "w", stdout);
+	freopen("CONOUT$", "w", stderr);
+
 	DebugPrint(__FUNCTION__);
 	HRESULT hr;
 
-	CProvider* pProvider = new CProvider();
+	CProvider *pProvider = new CProvider();
 
 	if (pProvider)
 	{
@@ -587,7 +595,7 @@ HRESULT CSample_CreateInstance(__in REFIID riid, __deref_out void** ppv)
 	return hr;
 }
 
-void CProvider::_GetSerializedCredentials(PWSTR* username, PWSTR* password, PWSTR* domain)
+void CProvider::_GetSerializedCredentials(PWSTR *username, PWSTR *password, PWSTR *domain)
 {
 	DebugPrint(__FUNCTION__);
 
@@ -662,7 +670,7 @@ bool CProvider::_SerializationAvailable(SERIALIZATION_AVAILABLE_FOR checkFor)
 
 // This function will be called by LogonUI after SetUsageScenario succeeds.
 // Sets the User Array with the list of users to be enumerated on the logon screen.
-HRESULT CProvider::SetUserArray(_In_ ICredentialProviderUserArray* users)
+HRESULT CProvider::SetUserArray(_In_ ICredentialProviderUserArray *users)
 {
 	if (_pCredProviderUserArray)
 	{
@@ -674,7 +682,7 @@ HRESULT CProvider::SetUserArray(_In_ ICredentialProviderUserArray* users)
 	DWORD dwUserCount;
 	_pCredProviderUserArray->GetCount(&dwUserCount);
 	_config->numberOfLockedUser = dwUserCount;
-	
+
 	_config->lockedUsers = _pCredProviderUserArray;
 
 	return S_OK;

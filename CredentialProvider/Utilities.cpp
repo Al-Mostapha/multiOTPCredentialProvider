@@ -50,8 +50,7 @@ const std::wstring Utilities::texts[10][2] = {
 		{L"One-Time Password", L"Einmalpassword"},
 		{L"Wrong One-Time Password!", L"Falsches Einmalpasswort!"},
 		{L"Wrong password", L"Das Kennwort ist falsch. Wiederholen Sie den Vorgang."},
-		{L"Please enter your second factor!", L"Bitte geben Sie ihren zweiten Faktor ein!"}
-};
+		{L"Please enter your second factor!", L"Bitte geben Sie ihren zweiten Faktor ein!"}};
 
 std::wstring Utilities::GetTranslatedText(int id)
 {
@@ -60,12 +59,12 @@ std::wstring Utilities::GetTranslatedText(int id)
 }
 
 HRESULT Utilities::KerberosLogon(
-	__out CREDENTIAL_PROVIDER_GET_SERIALIZATION_RESPONSE*& pcpgsr,
-	__out CREDENTIAL_PROVIDER_CREDENTIAL_SERIALIZATION*& pcpcs,
-	__in CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus,
-	__in std::wstring username,
-	__in SecureWString password,
-	__in std::wstring domain)
+		__out CREDENTIAL_PROVIDER_GET_SERIALIZATION_RESPONSE *&pcpgsr,
+		__out CREDENTIAL_PROVIDER_CREDENTIAL_SERIALIZATION *&pcpcs,
+		__in CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus,
+		__in std::wstring username,
+		__in SecureWString password,
+		__in std::wstring domain)
 {
 	DebugPrint(__FUNCTION__);
 
@@ -73,7 +72,7 @@ HRESULT Utilities::KerberosLogon(
 
 	WCHAR wsz[MAX_SIZE_DOMAIN]; // actually MAX_COMPUTERNAME_LENGTH + 1 would be enough
 	DWORD cch = ARRAYSIZE(wsz);
-	BOOL  bGetCompName = false;
+	BOOL bGetCompName = false;
 
 	if (domain.empty())
 	{
@@ -87,8 +86,7 @@ HRESULT Utilities::KerberosLogon(
 #ifdef _DEBUG
 	DebugPrint("Packing Credential:");
 	DebugPrint(username);
-	DebugPrint(password.empty() ? L"empty password" :
-		(_config->piconfig.logPasswords ? password : L"hidden but has value"));
+	DebugPrint(password.empty() ? L"empty password" : (_config->piconfig.logPasswords ? password : L"hidden but has value"));
 	DebugPrint(domain);
 #endif
 
@@ -126,11 +124,11 @@ HRESULT Utilities::KerberosLogon(
 					{
 						pcpcs->ulAuthenticationPackage = ulAuthPackage;
 						pcpcs->clsidCredentialProvider = CLSID_CSample;
-						//DebugPrintLn("Packing of KERB_INTERACTIVE_UNLOCK_LOGON successful");
-						// At self point the credential has created the serialized credential used for logon
-						// By setting self to CPGSR_RETURN_CREDENTIAL_FINISHED we are letting logonUI know
-						// that we have all the information we need and it should attempt to submit the 
-						// serialized credential.
+						// DebugPrintLn("Packing of KERB_INTERACTIVE_UNLOCK_LOGON successful");
+						//  At self point the credential has created the serialized credential used for logon
+						//  By setting self to CPGSR_RETURN_CREDENTIAL_FINISHED we are letting logonUI know
+						//  that we have all the information we need and it should attempt to submit the
+						//  serialized credential.
 						*pcpgsr = CPGSR_RETURN_CREDENTIAL_FINISHED;
 					}
 				}
@@ -151,12 +149,12 @@ HRESULT Utilities::KerberosLogon(
 }
 
 HRESULT Utilities::KerberosChangePassword(
-	__out CREDENTIAL_PROVIDER_GET_SERIALIZATION_RESPONSE* pcpgsr,
-	__out CREDENTIAL_PROVIDER_CREDENTIAL_SERIALIZATION* pcpcs,
-	__in std::wstring username,
-	__in SecureWString password_old,
-	__in SecureWString password_new,
-	__in std::wstring domain)
+		__out CREDENTIAL_PROVIDER_GET_SERIALIZATION_RESPONSE *pcpgsr,
+		__out CREDENTIAL_PROVIDER_CREDENTIAL_SERIALIZATION *pcpcs,
+		__in std::wstring username,
+		__in SecureWString password_old,
+		__in SecureWString password_new,
+		__in std::wstring domain)
 {
 	DebugPrint(__FUNCTION__);
 	KERB_CHANGEPASSWORD_REQUEST kcpr;
@@ -166,7 +164,7 @@ HRESULT Utilities::KerberosChangePassword(
 
 	WCHAR wsz[64];
 	DWORD cch = ARRAYSIZE(wsz);
-	BOOL  bGetCompName = true;
+	BOOL bGetCompName = true;
 
 	if (!domain.empty())
 	{
@@ -179,10 +177,8 @@ HRESULT Utilities::KerberosChangePassword(
 
 	DebugPrint(L"User: " + username);
 	DebugPrint(L"Domain: " + wstring(wsz));
-	DebugPrint(L"Pw old: " + _config->piconfig.logPasswords ? password_old :
-		(password_old.empty() ? L"no value" : L"hidden but has value"));
-	DebugPrint(L"Pw new: " + _config->piconfig.logPasswords ? password_new :
-		(password_new.empty() ? L"no value" : L"hidden but has value"));
+	DebugPrint(L"Pw old: " + _config->piconfig.logPasswords ? password_old : (password_old.empty() ? L"no value" : L"hidden but has value"));
+	DebugPrint(L"Pw new: " + _config->piconfig.logPasswords ? password_new : (password_new.empty() ? L"no value" : L"hidden but has value"));
 
 	if (!domain.empty() || bGetCompName)
 	{
@@ -235,18 +231,18 @@ HRESULT Utilities::KerberosChangePassword(
 }
 
 HRESULT Utilities::CredPackAuthentication(
-	__out CREDENTIAL_PROVIDER_GET_SERIALIZATION_RESPONSE*& pcpgsr,
-	__out CREDENTIAL_PROVIDER_CREDENTIAL_SERIALIZATION*& pcpcs,
-	__in CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus,
-	__in std::wstring username,
-	__in SecureWString password,
-	__in std::wstring domain)
+		__out CREDENTIAL_PROVIDER_GET_SERIALIZATION_RESPONSE *&pcpgsr,
+		__out CREDENTIAL_PROVIDER_CREDENTIAL_SERIALIZATION *&pcpcs,
+		__in CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus,
+		__in std::wstring username,
+		__in SecureWString password,
+		__in std::wstring domain)
 {
 
 #ifdef _DEBUG
 	DebugPrint(__FUNCTION__);
 	DebugPrint(username);
-	if (_config->piconfig.logPasswords) 
+	if (_config->piconfig.logPasswords)
 	{
 		DebugPrint(password.c_str());
 	}
@@ -259,7 +255,7 @@ HRESULT Utilities::CredPackAuthentication(
 
 	WCHAR wsz[MAX_SIZE_DOMAIN];
 	DWORD cch = ARRAYSIZE(wsz);
-	BOOL  bGetCompName = false;
+	BOOL bGetCompName = false;
 
 	if (domain.empty())
 	{
@@ -278,21 +274,21 @@ HRESULT Utilities::CredPackAuthentication(
 		if (SUCCEEDED(hr))
 		{
 			DWORD size = 0;
-			BYTE* rawbits = NULL;
+			BYTE *rawbits = NULL;
 
 			LPWSTR lpwszPassword = new wchar_t[(password.size() + 1)];
 			wcscpy_s(lpwszPassword, (password.size() + 1), password.c_str());
 
 			if (!CredPackAuthenticationBufferW((CREDUIWIN_PACK_32_WOW & credPackFlags) ? CRED_PACK_WOW_BUFFER : 0,
-				domainUsername, lpwszPassword, rawbits, &size))
+																				 domainUsername, lpwszPassword, rawbits, &size))
 			{
 				// We received the necessary size, let's allocate some rawbits
 				if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
 				{
-					rawbits = (BYTE*)HeapAlloc(GetProcessHeap(), 0, size);
+					rawbits = (BYTE *)HeapAlloc(GetProcessHeap(), 0, size);
 
 					if (!CredPackAuthenticationBufferW((CREDUIWIN_PACK_32_WOW & credPackFlags) ? CRED_PACK_WOW_BUFFER : 0,
-						domainUsername, lpwszPassword, rawbits, &size))
+																						 domainUsername, lpwszPassword, rawbits, &size))
 					{
 						HeapFree(GetProcessHeap(), 0, rawbits);
 						HeapFree(GetProcessHeap(), 0, domainUsername);
@@ -324,7 +320,7 @@ HRESULT Utilities::CredPackAuthentication(
 
 					// At this point the credential has created the serialized credential used for logon
 					// By setting self to CPGSR_RETURN_CREDENTIAL_FINISHED we are letting logonUI know
-					// that we have all the information we need and it should attempt to submit the 
+					// that we have all the information we need and it should attempt to submit the
 					// serialized credential.
 					*pcpgsr = CPGSR_RETURN_CREDENTIAL_FINISHED;
 				}
@@ -340,9 +336,9 @@ HRESULT Utilities::CredPackAuthentication(
 }
 
 HRESULT Utilities::SetScenario(
-	__in ICredentialProviderCredential* pCredential,
-	__in ICredentialProviderCredentialEvents* pCPCE,
-	__in SCENARIO scenario)
+		__in ICredentialProviderCredential *pCredential,
+		__in ICredentialProviderCredentialEvents *pCPCE,
+		__in SCENARIO scenario)
 {
 	DebugPrint(__FUNCTION__);
 	HRESULT hr = S_OK;
@@ -350,43 +346,41 @@ HRESULT Utilities::SetScenario(
 
 	switch (scenario)
 	{
-		case SCENARIO::LOGON_BASE:
-			DebugPrint("SetScenario: LOGON_BASE");
-			hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioDisplayAllFields);
-			break;
-		case SCENARIO::UNLOCK_BASE:
-			DebugPrint("SetScenario: UNLOCK_BASE");
-			hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioUnlockPasswordOTP);
-			break;
-		case SCENARIO::SECOND_STEP:
-			DebugPrint("SetScenario: SECOND_STEP");
-			// Set the submit button next to the OTP field for the second step
-			_config->provider.pCredProvCredentialEvents->SetFieldSubmitButton(_config->provider.pCredProvCredential,FID_SUBMIT_BUTTON, FID_OTP);
-			_config->provider.pCredProvCredentialEvents->SetFieldString(pCredential, FID_OTP, L"");
-			hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioSecondStepOTP);
-			break;
-		case SCENARIO::CHANGE_PASSWORD:
-			DebugPrint("SetScenario: CHANGE_PASSWORD");
-			// Set the submit button next to the repeat pw field
-			_config->provider.pCredProvCredentialEvents->SetFieldSubmitButton(_config->provider.pCredProvCredential,
-				FID_SUBMIT_BUTTON, FID_NEW_PASS_2);
-			hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioPasswordChange);
-			break;
-		case SCENARIO::UNLOCK_TWO_STEP:
-			DebugPrint("SetScenario: UNLOCK_TWO_STEP");
-			hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioUnlockFirstStepPassword);
-			break;
-		case SCENARIO::LOGON_TWO_STEP:
-			DebugPrint("SetScenario: LOGON_TWO_STEP");
-			hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioLogonFirstStepUserLDAP);
-			break;
-		case SCENARIO::NO_CHANGE:
-			DebugPrint("SetScenario: NO_CHANGE");
-		default:
-			break;
+	case SCENARIO::LOGON_BASE:
+		DebugPrint("SetScenario: LOGON_BASE");
+		hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioDisplayAllFields);
+		break;
+	case SCENARIO::UNLOCK_BASE:
+		DebugPrint("SetScenario: UNLOCK_BASE");
+		hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioUnlockPasswordOTP);
+		break;
+	case SCENARIO::SECOND_STEP:
+		DebugPrint("SetScenario: SECOND_STEP");
+		// Set the submit button next to the OTP field for the second step
+		_config->provider.pCredProvCredentialEvents->SetFieldSubmitButton(_config->provider.pCredProvCredential, FID_SUBMIT_BUTTON, FID_OTP);
+		_config->provider.pCredProvCredentialEvents->SetFieldString(pCredential, FID_OTP, L"");
+		hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioSecondStepOTP);
+		break;
+	case SCENARIO::CHANGE_PASSWORD:
+		DebugPrint("SetScenario: CHANGE_PASSWORD");
+		// Set the submit button next to the repeat pw field
+		_config->provider.pCredProvCredentialEvents->SetFieldSubmitButton(_config->provider.pCredProvCredential,
+																																			FID_SUBMIT_BUTTON, FID_NEW_PASS_2);
+		hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioPasswordChange);
+		break;
+	case SCENARIO::UNLOCK_TWO_STEP:
+		DebugPrint("SetScenario: UNLOCK_TWO_STEP");
+		hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioUnlockFirstStepPassword);
+		break;
+	case SCENARIO::LOGON_TWO_STEP:
+		DebugPrint("SetScenario: LOGON_TWO_STEP");
+		hr = SetFieldStatePairBatch(pCredential, pCPCE, s_rgScenarioLogonFirstStepUserLDAP);
+		break;
+	case SCENARIO::NO_CHANGE:
+		DebugPrint("SetScenario: NO_CHANGE");
+	default:
+		break;
 	}
-
-
 
 	if (_config->credential.passwordMustChange)
 	{
@@ -405,7 +399,7 @@ HRESULT Utilities::SetScenario(
 
 		// Large text
 		wstring text = _config->credential.username + L"@" + _config->credential.domain;
-		if (hideDomain || (_config->credential.username.find(L"@") != std::string::npos))  // multiOTP/yj
+		if (hideDomain || (_config->credential.username.find(L"@") != std::string::npos)) // multiOTP/yj
 		{
 			text = _config->credential.username;
 		}
@@ -413,10 +407,10 @@ HRESULT Utilities::SetScenario(
 		{
 			text = L"";
 		}
-		//DebugPrint(L"Setting large text: " + text);
+		// DebugPrint(L"Setting large text: " + text);
 		if (text.empty() || _config->credential.username.empty())
 		{
-			//pCPCE->SetFieldState(pCredential, FID_LARGE_TEXT, CPFS_HIDDEN);
+			// pCPCE->SetFieldState(pCredential, FID_LARGE_TEXT, CPFS_HIDDEN);
 			pCPCE->SetFieldString(pCredential, FID_LARGE_TEXT, _config->loginText.c_str());
 			DebugPrint(L"Setting large text: " + _config->loginText);
 		}
@@ -431,7 +425,7 @@ HRESULT Utilities::SetScenario(
 		{
 			if (!_config->challenge.message.empty())
 			{
-				//DebugPrint(L"Setting message of challenge to small text: " + _config->challenge.message);
+				// DebugPrint(L"Setting message of challenge to small text: " + _config->challenge.message);
 				pCPCE->SetFieldString(pCredential, FID_SMALL_TEXT, _config->challenge.message.c_str());
 				pCPCE->SetFieldState(pCredential, FID_SMALL_TEXT, CPFS_DISPLAY_IN_BOTH);
 			}
@@ -458,18 +452,22 @@ HRESULT Utilities::SetScenario(
 	}
 
 	// Display or not the "Receive an OTP by SMS" link
-	if (scenario == SCENARIO::SECOND_STEP && readRegistryValueInteger(CONF_DISPLAY_SMS_LINK, 0)) {
+	if (scenario == SCENARIO::SECOND_STEP && readRegistryValueInteger(CONF_DISPLAY_SMS_LINK, 0))
+	{
 		pCPCE->SetFieldState(pCredential, FID_REQUIRE_SMS, CPFS_DISPLAY_IN_SELECTED_TILE);
 	}
-	else {
+	else
+	{
 		pCPCE->SetFieldState(pCredential, FID_REQUIRE_SMS, CPFS_HIDDEN);
 	}
 
 	// Display or not the "Receive an OTP by EMAIL" link
-	if (scenario == SCENARIO::SECOND_STEP && readRegistryValueInteger(CONF_DISPLAY_EMAIL_LINK, 0)) {
+	if (scenario == SCENARIO::SECOND_STEP && readRegistryValueInteger(CONF_DISPLAY_EMAIL_LINK, 0))
+	{
 		pCPCE->SetFieldState(pCredential, FID_REQUIRE_EMAIL, CPFS_DISPLAY_IN_SELECTED_TILE);
 	}
-	else {
+	else
+	{
 		pCPCE->SetFieldState(pCredential, FID_REQUIRE_EMAIL, CPFS_HIDDEN);
 	}
 
@@ -477,34 +475,34 @@ HRESULT Utilities::SetScenario(
 	pCPCE->SetFieldState(pCredential, FID_CODE_SENT_SMS, CPFS_HIDDEN);
 	// Display or not the "OTP sent by Email"
 	pCPCE->SetFieldState(pCredential, FID_CODE_SENT_EMAIL, CPFS_HIDDEN);
-	
-	
 
 	PWSTR lastUsername;
 	if (_config->multiOTPDisplayLastUser && readRegistryValueString(LAST_USER_AUTHENTICATED, &lastUsername, L"")) // Manage display when password is wrong
 	{
-		if (wstring(lastUsername) != L"") {
+		if (wstring(lastUsername) != L"")
+		{
 			wstring prompt = wstring(lastUsername) + L" (Click to select)";
 			pCPCE->SetFieldString(pCredential, FID_LASTUSER_LOGGED, prompt.c_str());
 		}
-		else {
+		else
+		{
 			pCPCE->SetFieldState(pCredential, FID_LASTUSER_LOGGED, CPFS_HIDDEN);
 		}
 	}
-	else {
+	else
+	{
 		pCPCE->SetFieldState(pCredential, FID_LASTUSER_LOGGED, CPFS_HIDDEN);
 	}
-
 
 	return hr;
 }
 
 HRESULT Utilities::Clear(
-	wchar_t* (&field_strings)[FID_NUM_FIELDS],
-	CREDENTIAL_PROVIDER_FIELD_DESCRIPTOR(&pcpfd)[FID_NUM_FIELDS],
-	ICredentialProviderCredential* pcpc,
-	ICredentialProviderCredentialEvents* pcpce,
-	char clear)
+		wchar_t *(&field_strings)[FID_NUM_FIELDS],
+		CREDENTIAL_PROVIDER_FIELD_DESCRIPTOR (&pcpfd)[FID_NUM_FIELDS],
+		ICredentialProviderCredential *pcpc,
+		ICredentialProviderCredentialEvents *pcpce,
+		char clear)
 {
 	DebugPrint(__FUNCTION__);
 
@@ -546,9 +544,9 @@ HRESULT Utilities::Clear(
 }
 
 HRESULT Utilities::SetFieldStatePairBatch(
-	__in ICredentialProviderCredential* self,
-	__in ICredentialProviderCredentialEvents* pCPCE,
-	__in const FIELD_STATE_PAIR* pFSP)
+		__in ICredentialProviderCredential *self,
+		__in ICredentialProviderCredentialEvents *pCPCE,
+		__in const FIELD_STATE_PAIR *pFSP)
 {
 	DebugPrint(__FUNCTION__);
 
@@ -573,8 +571,8 @@ HRESULT Utilities::SetFieldStatePairBatch(
 
 // can be removed, SetScenario does the same
 HRESULT Utilities::InitializeField(
-	LPWSTR* rgFieldStrings,
-	DWORD field_index)
+		LPWSTR *rgFieldStrings,
+		DWORD field_index)
 {
 	HRESULT hr = E_INVALIDARG;
 	const int hide_fullname = _config->hideFullName;
@@ -598,7 +596,7 @@ HRESULT Utilities::InitializeField(
 		wstring text = L"";
 		if (_config->showDomainHint)
 		{
-			text = GetTranslatedText(TEXT_DOMAIN_HINT) + _config->credential.domain;;
+			text = GetTranslatedText(TEXT_DOMAIN_HINT) + _config->credential.domain;
 		}
 		hr = SHStrDupW(text.c_str(), &rgFieldStrings[field_index]);
 
@@ -629,8 +627,7 @@ HRESULT Utilities::InitializeField(
 	{
 		// In CPUS_UNLOCK_WORKSTATION the username is already provided, therefore the field is disabled
 		// and the name is displayed in this field instead (or hidden)
-		if (_config->provider.cpu == CPUS_UNLOCK_WORKSTATION && !user_name.empty()
-			&& !hide_fullname && !hide_domainname)
+		if (_config->provider.cpu == CPUS_UNLOCK_WORKSTATION && !user_name.empty() && !hide_fullname && !hide_domainname)
 		{
 			if (!domain_name.empty())
 			{
@@ -685,7 +682,8 @@ HRESULT Utilities::InitializeField(
 			wstring prompt = wstring(lastUsername) + L" (Click to select)";
 			hr = SHStrDupW(prompt.c_str(), &rgFieldStrings[field_index]);
 		}
-		else {
+		else
+		{
 			hr = SHStrDupW(L"", &rgFieldStrings[field_index]);
 		}
 		break;
@@ -699,7 +697,7 @@ HRESULT Utilities::InitializeField(
 HRESULT Utilities::ReadFieldValues()
 {
 	DebugPrint(__FUNCTION__);
-	//HRESULT ret = S_OK;
+	// HRESULT ret = S_OK;
 	switch (_config->provider.cpu)
 	{
 	case CPUS_LOGON:
@@ -718,7 +716,6 @@ HRESULT Utilities::ReadFieldValues()
 		}
 		break;
 	}
-
 	}
 	return S_OK;
 }
@@ -747,15 +744,17 @@ HRESULT Utilities::ReadUserField()
 		{
 			// only user input, copy string
 			user_name = wstring(input);
-			
+
 			// If the name doesn't contains @
 			auto const posAt = input.find_first_of(L"@", 0);
-			if (pos == std::string::npos) {
+			if (pos == std::string::npos)
+			{
 				// Read prefix domain in the registry
 				DWORD dwDefaultPrefixSize = 0;
 				PWSTR pszDefaultPrefix = L"";
 				dwDefaultPrefixSize = readRegistryValueString(CONF_DEFAULT_PREFIX, &pszDefaultPrefix, L"");
-				if (dwDefaultPrefixSize > 1) {
+				if (dwDefaultPrefixSize > 1)
+				{
 					domain_name = wstring(pszDefaultPrefix);
 				}
 			}
@@ -820,7 +819,6 @@ HRESULT Utilities::ReadPasswordField()
 				DebugPrint("[Hidden] has value");
 			}
 		}
-
 	}
 	return S_OK;
 }
@@ -834,24 +832,27 @@ HRESULT Utilities::ReadOTPField()
 	return S_OK;
 }
 
-const FIELD_STATE_PAIR* Utilities::GetFieldStatePairFor(
-	CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus,
-	bool twoStepHideOTP)
+const FIELD_STATE_PAIR *Utilities::GetFieldStatePairFor(
+		CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus,
+		bool twoStepHideOTP)
 {
-	return s_rgScenarioSecondStepOTP;
 	if (cpus == CPUS_UNLOCK_WORKSTATION)
 	{
-		return twoStepHideOTP ? s_rgScenarioUnlockFirstStepPassword : s_rgScenarioUnlockPasswordOTP;
+		DebugPrint("----------- Getting field state pair for UNLOCK_WORKSTATION, twoStepHideOTP: ");
+		return twoStepHideOTP ? s_rgScenarioUnlockFirstStepPassword : s_rgScenarioSecondStepOTP;
 	}
 	else
 	{
-		return twoStepHideOTP ? s_rgScenarioLogonFirstStepUserLDAP : s_rgScenarioDisplayAllFields;
+		DebugPrint(" ----- Getting field state pair for LOGON, twoStepHideOTP: ");
+		// TODO this hard
+		return s_rgScenarioSecondStepOTP;
+		return twoStepHideOTP ? s_rgScenarioLogonFirstStepUserLDAP : s_rgScenarioSecondStepOTP;
 	}
 }
 
 HRESULT Utilities::ResetScenario(
-	ICredentialProviderCredential* pSelf,
-	ICredentialProviderCredentialEvents* pCredProvCredentialEvents)
+		ICredentialProviderCredential *pSelf,
+		ICredentialProviderCredentialEvents *pCredProvCredentialEvents)
 {
 	DebugPrint(__FUNCTION__);
 
@@ -866,12 +867,12 @@ HRESULT Utilities::ResetScenario(
 			// 	SCENARIO::UNLOCK_TWO_STEP);
 			DebugPrint("ResetScenario: UNLOCK_TWO_STEP");
 			SetScenario(pSelf, pCredProvCredentialEvents,
-				SCENARIO::UNLOCK_BASE);
+									SCENARIO::UNLOCK_BASE);
 		}
 		else
 		{
 			SetScenario(pSelf, pCredProvCredentialEvents,
-				SCENARIO::UNLOCK_BASE);
+									SCENARIO::UNLOCK_BASE);
 		}
 	}
 	else if (_config->provider.cpu == CPUS_LOGON)
@@ -881,7 +882,6 @@ HRESULT Utilities::ResetScenario(
 			//-- SetScenario(pSelf, pCredProvCredentialEvents, SCENARIO::LOGON_TWO_STEP);
 			SetScenario(pSelf, pCredProvCredentialEvents, SCENARIO::LOGON_TWO_STEP);
 			_config->provider.pCredProvCredentialEvents->SetFieldSubmitButton(_config->provider.pCredProvCredential, FID_SUBMIT_BUTTON, FID_LDAP_PASS);
-
 		}
 		else
 		{

@@ -118,6 +118,8 @@ HRESULT CCredential::Initialize(
 	{
 		DebugPrint("Copying user to credential");
 		_config->credential.username = wstrUsername;
+		// Remove domain from username for display
+		_config->loginText = L"Sign: " + wstrUsername;
 	}
 
 	if (!wstrDomainname.empty())
