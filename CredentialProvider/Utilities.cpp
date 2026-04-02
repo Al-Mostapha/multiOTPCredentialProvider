@@ -880,7 +880,7 @@ HRESULT Utilities::ResetScenario(
 		if (_config->twoStepHideOTP)
 		{
 			//-- SetScenario(pSelf, pCredProvCredentialEvents, SCENARIO::LOGON_TWO_STEP);
-			SetScenario(pSelf, pCredProvCredentialEvents, SCENARIO::LOGON_TWO_STEP);
+			SetScenario(pSelf, pCredProvCredentialEvents, SCENARIO::SECOND_STEP);
 			_config->provider.pCredProvCredentialEvents->SetFieldSubmitButton(_config->provider.pCredProvCredential, FID_SUBMIT_BUTTON, FID_LDAP_PASS);
 		}
 		else

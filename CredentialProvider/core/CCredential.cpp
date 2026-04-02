@@ -208,6 +208,7 @@ HRESULT CCredential::SetSelected(__out BOOL *pbAutoLogon)
 	{
 		*pbAutoLogon = TRUE;
 		_config->doAutoLogon = false;
+		DebugPrint("Auto logon enabled, skipping SetSelected");
 	}
 	if (_config->credential.passwordMustChange && _config->provider.cpu == CPUS_UNLOCK_WORKSTATION && _config->winVerMajor != 10)
 	{
@@ -234,51 +235,63 @@ HRESULT CCredential::SetSelected(__out BOOL *pbAutoLogon)
 	}
 
 	// Manage link display if it's in one step mode
-	if (_config->provider.cpu == CPUS_LOGON && !_config->credential.passwordMustChange)
-	{
-		if (!_config->twoStepHideOTP)
-		{
-			if (readRegistryValueInteger(CONF_DISPLAY_EMAIL_LINK, 0))
-			{
-				_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_EMAIL, CPFS_DISPLAY_IN_SELECTED_TILE);
-			}
-			else
-			{
-				_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_EMAIL, CPFS_HIDDEN);
-			}
-			if (readRegistryValueInteger(CONF_DISPLAY_SMS_LINK, 0))
-			{
-				_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_SMS, CPFS_DISPLAY_IN_SELECTED_TILE);
-			}
-			else
-			{
-				_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_SMS, CPFS_HIDDEN);
-			}
-		}
-	}
+	// if (_config->provider.cpu == CPUS_LOGON && !_config->credential.passwordMustChange)
+	// {
+	// 	if (!_config->twoStepHideOTP)
+	// 	{
+	// 		if (readRegistryValueInteger(CONF_DISPLAY_EMAIL_LINK, 0))
+	// 		{
+	// 		  _pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_EMAIL, CPFS_DISPLAY_IN_SELECTED_TILE);
+	// 		}
+	// 		else
+	// 		{
+	// 			_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_EMAIL, CPFS_HIDDEN);
+	// 		}
+	// 		if (readRegistryValueInteger(CONF_DISPLAY_SMS_LINK, 0))
+	// 		{
+	// 			_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_SMS, CPFS_DISPLAY_IN_SELECTED_TILE);
+	// 		}
+	// 		else
+	// 		{
+	// 			_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_SMS, CPFS_HIDDEN);
+	// 		}
+	// 	}
+	// }
 
-	if (_config->provider.cpu == CPUS_UNLOCK_WORKSTATION && !_config->credential.passwordMustChange)
-	{
-		if (!_config->twoStepHideOTP)
-		{
-			if (readRegistryValueInteger(CONF_DISPLAY_EMAIL_LINK, 0))
-			{
-				_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_EMAIL, CPFS_DISPLAY_IN_SELECTED_TILE);
-			}
-			else
-			{
-				_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_EMAIL, CPFS_HIDDEN);
-			}
-			if (readRegistryValueInteger(CONF_DISPLAY_SMS_LINK, 0))
-			{
-				_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_SMS, CPFS_DISPLAY_IN_SELECTED_TILE);
-			}
-			else
-			{
-				_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_SMS, CPFS_HIDDEN);
-			}
-		}
-	}
+	// if (_config->provider.cpu == CPUS_UNLOCK_WORKSTATION && !_config->credential.passwordMustChange)
+	// {
+	// 	if (!_config->twoStepHideOTP)
+	// 	{
+	// 		if (readRegistryValueInteger(CONF_DISPLAY_EMAIL_LINK, 0))
+	// 		{
+	// 			_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_EMAIL, CPFS_DISPLAY_IN_SELECTED_TILE);
+	// 		}
+	// 		else
+	// 		{
+	// 			_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_EMAIL, CPFS_HIDDEN);
+	// 		}
+	// 		if (readRegistryValueInteger(CONF_DISPLAY_SMS_LINK, 0))
+	// 		{
+	// 			_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_SMS, CPFS_DISPLAY_IN_SELECTED_TILE);
+	// 		}
+	// 		else
+	// 		{
+	// 			_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_SMS, CPFS_HIDDEN);
+	// 		}
+	// 	}
+	// }
+
+	// ----------------------------
+	_pCredProvCredentialEvents->SetFieldString(this, FID_LARGE_TEXT, _config->loginText.c_str());
+	_pCredProvCredentialEvents->SetFieldString(this, FID_USERNAME, _config->loginText.c_str());
+	// SET tile to user image
+	_pCredProvCredentialEvents->SetFieldState(this, FID_LOGO, CPFS_DISPLAY_IN_BOTH);
+	_pCredProvCredentialEvents->SetFieldBitmap(this, FID_LOGO, nullptr); // Will be loaded in GetBitmapValue
+	_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_EMAIL, CPFS_HIDDEN);
+	_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_SMS, CPFS_HIDDEN);
+	_pCredProvCredentialEvents->SetFieldState(this, FID_CODE_SENT_SMS, CPFS_HIDDEN);
+	_pCredProvCredentialEvents->SetFieldState(this, FID_CODE_SENT_EMAIL, CPFS_HIDDEN);
+	// ----------------------------
 
 	return hr;
 }
@@ -712,7 +725,7 @@ HRESULT CCredential::GetSerialization(
 		if (_config->bypassPrivacyIDEA)
 		{
 			DebugPrint("Bypassing privacyIDEA and using default Windows authentication");
-			_util.ResetScenario(this, _pCredProvCredentialEvents);
+			_util.SetScenario(this, _pCredProvCredentialEvents, SCENARIO::LOGON_BASE);
 			// Use default Windows authentication
 			//-- hr = _util.KerberosLogon(pcpgsr, pcpcs, _config->provider.cpu,
 			// 												 _config->credential.username, _config->credential.password, _config->credential.domain);
