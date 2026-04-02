@@ -110,7 +110,7 @@
       <RegistrySearch Id='multiOTPUPNFormatRegistry' Type='raw' Root='HKCR' Key='CLSID\{FCEFDFAB-B0A1-4C4D-8B2B-4FF4E0A3D978}' Name='multiOTPUPNFormat' Win64="$(var.Win64)"/>
     </Property>
 
-    <Property Id="MULTIOTP_TWO_STEP_HIDE_OTP" Value="1">
+    <Property Id="MULTIOTP_TWO_STEP_HIDE_OTP" Value="0">
       <RegistrySearch Id='multiOTPTwoStepHideOTPRegistry' Type='raw' Root='HKCR' Key='CLSID\{FCEFDFAB-B0A1-4C4D-8B2B-4FF4E0A3D978}' Name='two_step_hide_otp' Win64="$(var.Win64)"/>
     </Property>
     <Property Id="MULTIOTP_TWO_STEP_SEND_PASSWORD" Value="0">

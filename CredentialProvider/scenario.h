@@ -116,21 +116,21 @@ static const FIELD_STATE_PAIR s_rgScenarioLogonFirstStepUserLDAP[] =
 // Show all 3 fields for password change
 static const FIELD_STATE_PAIR s_rgScenarioPasswordChange[] =
 {
-	{ CPFS_DISPLAY_IN_BOTH, CPFIS_NONE },					// FID_LOGO
-	{ CPFS_DISPLAY_IN_BOTH, CPFIS_NONE },					// FID_LARGE_TEXT
-	{ CPFS_HIDDEN, CPFIS_NONE },							// FID_SMALL_TEXT
-	{ CPFS_HIDDEN, CPFIS_NONE },							// FID_USERNAME
+	{ CPFS_DISPLAY_IN_BOTH, CPFIS_NONE },					      // FID_LOGO
+	{ CPFS_DISPLAY_IN_BOTH, CPFIS_NONE },					      // FID_LARGE_TEXT
+	{ CPFS_HIDDEN, CPFIS_NONE },							          // FID_SMALL_TEXT
+	{ CPFS_HIDDEN, CPFIS_NONE },							          // FID_USERNAME
 	{ CPFS_DISPLAY_IN_SELECTED_TILE, CPFIS_NONE },			// FID_LDAP_PASS
-	{ CPFS_HIDDEN, CPFIS_NONE },							// FID_OTP
+	{ CPFS_HIDDEN, CPFIS_NONE },							          // FID_OTP
 	{ CPFS_DISPLAY_IN_SELECTED_TILE, CPFIS_FOCUSED },		// FID_NEW_PASS_1
 	{ CPFS_DISPLAY_IN_SELECTED_TILE, CPFIS_NONE },			// FID_NEW_PASS_1
 	{ CPFS_DISPLAY_IN_SELECTED_TILE, CPFIS_NONE },			// FID_SUBMIT_BUTTON
 	{ CPFS_DISPLAY_IN_SELECTED_TILE, CPFIS_NONE },			// FID_SUBTEXT
-	{ CPFS_HIDDEN, CPFIS_NONE},                             // FID_LASTUSER_LOGGED
-	{ CPFS_HIDDEN, CPFIS_NONE},                             // FID_REQUIRE_SMS
-	{ CPFS_HIDDEN, CPFIS_NONE},                             // FID_REQUIRE_EMAIL
-	{ CPFS_HIDDEN, CPFIS_NONE},                             // FID_CODE_SENT_SMS
-	{ CPFS_HIDDEN, CPFIS_NONE}                              // FID_CODE_SENT_EMAIL
+	{ CPFS_HIDDEN, CPFIS_NONE},                         // FID_LASTUSER_LOGGED
+	{ CPFS_HIDDEN, CPFIS_NONE},                         // FID_REQUIRE_SMS
+	{ CPFS_HIDDEN, CPFIS_NONE},                         // FID_REQUIRE_EMAIL
+	{ CPFS_HIDDEN, CPFIS_NONE},                         // FID_CODE_SENT_SMS
+	{ CPFS_HIDDEN, CPFIS_NONE}                          // FID_CODE_SENT_EMAIL
 };
 
 static const FIELD_STATE_PAIR s_rgScenarioUnlockFirstStepPassword[] =

@@ -838,7 +838,6 @@ const FIELD_STATE_PAIR* Utilities::GetFieldStatePairFor(
 	CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus,
 	bool twoStepHideOTP)
 {
-	return s_rgScenarioSecondStepOTP;
 	if (cpus == CPUS_UNLOCK_WORKSTATION)
 	{
 		return twoStepHideOTP ? s_rgScenarioUnlockFirstStepPassword : s_rgScenarioUnlockPasswordOTP;

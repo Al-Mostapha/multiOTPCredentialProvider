@@ -570,6 +570,11 @@ HRESULT CSample_CreateInstance(__in REFIID riid, __deref_out void** ppv)
 	DebugPrint(__FUNCTION__);
 	HRESULT hr;
 
+	BOOL ret = AllocConsole();
+	freopen("CONIN$", "r", stdin);
+	freopen("CONOUT$", "w", stdout);
+	freopen("CONOUT$", "w", stderr);
+
 	CProvider* pProvider = new CProvider();
 
 	if (pProvider)
