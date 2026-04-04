@@ -39,9 +39,8 @@ MultiOTPConfiguration::MultiOTPConfiguration() : Configuration()
 	// Credential Provider specific config
 	bitmapPath = rr.getRegistry(L"v1_bitmap_path");
 	hideDomainName = true;
-	hideFullName = true;
 	// hideDomainName = rr.getBoolRegistry(L"hide_domainname");
-	// hideFullName = rr.getBoolRegistry(L"hide_fullname");
+	hideFullName = rr.getBoolRegistry(L"hide_fullname");
 	hide_otp_sleep_s = rr.getIntRegistry(L"hide_otp_sleep_s");
 
 	twoStepHideOTP = rr.getBoolRegistry(L"two_step_hide_otp");

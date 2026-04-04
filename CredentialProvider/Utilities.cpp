@@ -556,6 +556,7 @@ HRESULT Utilities::SetFieldStatePairBatch(
 
 	if (!pCPCE || !self)
 	{
+		DebugPrint(" ------------------------------------------------- Invalid argument(s) for SetFieldStatePairBatch");
 		return E_INVALIDARG;
 	}
 
@@ -855,17 +856,14 @@ HRESULT Utilities::ResetScenario(
 	DebugPrint(__FUNCTION__);
 
 	// 2 step progress is reset aswell, therefore put the submit button next to the password field again
-	_config->isSecondStep = false;
+	_config->isSecondStep = false;	
 
 	if (_config->provider.cpu == CPUS_UNLOCK_WORKSTATION)
 	{
 		if (_config->twoStepHideOTP)
 		{
-			// SetScenario(pSelf, pCredProvCredentialEvents,
-			// 	SCENARIO::UNLOCK_TWO_STEP);
-			DebugPrint("ResetScenario: UNLOCK_TWO_STEP");
 			SetScenario(pSelf, pCredProvCredentialEvents,
-				SCENARIO::UNLOCK_BASE);
+				SCENARIO::UNLOCK_TWO_STEP);
 		}
 		else
 		{
@@ -877,10 +875,7 @@ HRESULT Utilities::ResetScenario(
 	{
 		if (_config->twoStepHideOTP)
 		{
-			//-- SetScenario(pSelf, pCredProvCredentialEvents, SCENARIO::LOGON_TWO_STEP);
 			SetScenario(pSelf, pCredProvCredentialEvents, SCENARIO::LOGON_TWO_STEP);
-			_config->provider.pCredProvCredentialEvents->SetFieldSubmitButton(_config->provider.pCredProvCredential, FID_SUBMIT_BUTTON, FID_LDAP_PASS);
-
 		}
 		else
 		{

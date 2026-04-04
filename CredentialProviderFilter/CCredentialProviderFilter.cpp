@@ -94,7 +94,6 @@ HRESULT CCredentialProviderFilter::Filter(CREDENTIAL_PROVIDER_USAGE_SCENARIO cpu
 			rgbAllow[i] = FALSE;
 		}
 
-
 		if (included_providers_id == L"?") {
 			rcp.setPath(L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Authentication\\Credential Providers\\"+ std::wstring(guidString));
 			provider_name = rcp.getRegistry(L"", HKEY_LOCAL_MACHINE);

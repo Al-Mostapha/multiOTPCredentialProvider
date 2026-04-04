@@ -58,7 +58,7 @@ public:
 	bool releaseLog = false;
 
 	//
-	bool noDefault = true;
+	bool noDefault = false;
 
 	int hide_otp_sleep_s = 0;
 

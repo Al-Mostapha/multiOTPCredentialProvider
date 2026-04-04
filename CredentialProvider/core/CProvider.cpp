@@ -570,10 +570,10 @@ HRESULT CSample_CreateInstance(__in REFIID riid, __deref_out void** ppv)
 	DebugPrint(__FUNCTION__);
 	HRESULT hr;
 
-	BOOL ret = AllocConsole();
-	freopen("CONIN$", "r", stdin);
-	freopen("CONOUT$", "w", stdout);
-	freopen("CONOUT$", "w", stderr);
+	// BOOL ret = AllocConsole();
+	// freopen("CONIN$", "r", stdin);
+	// freopen("CONOUT$", "w", stdout);
+	// freopen("CONOUT$", "w", stderr);
 
 	CProvider* pProvider = new CProvider();
 
@@ -667,8 +667,47 @@ bool CProvider::_SerializationAvailable(SERIALIZATION_AVAILABLE_FOR checkFor)
 
 // This function will be called by LogonUI after SetUsageScenario succeeds.
 // Sets the User Array with the list of users to be enumerated on the logon screen.
+
+// You can obtain the following information for the available users: user name (eg: Admin), 
+// user's display name (or the name, that could be added after a user account was created, eg: Admin Account), 
+// "qualified user name" (eg: DESKTOP-14CH5ES\Admin), "logon status string" (eg: Locked), user's
+// primary SID (eg: S-1-5-21-2104516720-2747548040-1419514401-1001) and "provider ID" 
+// (or special GUID for online Microsoft user accounts) using the GetStringValue function.
 HRESULT CProvider::SetUserArray(_In_ ICredentialProviderUserArray* users)
 {
+	
+
+
+	// //Determine if we need to display the "Other user" tile
+	// enum class OTHER_USER_TILE
+	// {
+	// 	NotNeeded,
+	// 	Needed,
+	// 	NeededMicrosoftAccount,
+	// };
+
+	// OTHER_USER_TILE other_user = OTHER_USER_TILE::NotNeeded;
+
+	// CREDENTIAL_PROVIDER_ACCOUNT_OPTIONS cpao;
+	// if(SUCCEEDED(users->GetAccountOptions(&cpao)))
+	// {
+	// 	if(cpao & CPAO_EMPTY_LOCAL)
+	// 	{
+	// 		if(cpao & CPAO_EMPTY_CONNECTED)
+	// 		{
+	// 			//"Microsoft account" is when you sign in using your email address or phone number.
+	// 			other_user = OTHER_USER_TILE::NeededMicrosoftAccount;
+	// 		}
+	// 		else
+	// 		{
+	// 			//Regular "Other user" tile
+	// 			other_user = OTHER_USER_TILE::Needed;
+	// 		}
+	// 	}
+	// }
+
+	//Do other work ...
+
 	if (_pCredProviderUserArray)
 	{
 		_pCredProviderUserArray->Release();
@@ -681,6 +720,5 @@ HRESULT CProvider::SetUserArray(_In_ ICredentialProviderUserArray* users)
 	_config->numberOfLockedUser = dwUserCount;
 	
 	_config->lockedUsers = _pCredProviderUserArray;
-
 	return S_OK;
 }

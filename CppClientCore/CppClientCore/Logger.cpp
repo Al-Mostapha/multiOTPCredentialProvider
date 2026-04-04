@@ -64,7 +64,7 @@ void Logger::logS(const string& message, const char* file, int line, bool logInP
 	ofstream os;
 	os.open(outfilePath.c_str(), std::ios_base::app);
 	os << fullMessage << endl;
-
+  std::cout << fullMessage << std::endl;
 
 #ifndef _OUTPUT_TO_COUT
 	OutputDebugStringA(fullMessage.c_str());
@@ -72,7 +72,7 @@ void Logger::logS(const string& message, const char* file, int line, bool logInP
 #else
 	//std::cout << fullMessage << std::endl;
 #endif // !_OUTPUT_TO_COUT
-  std::cout << fullMessage << std::endl;
+
 }
 
 void Logger::logW(const wstring& message, const char* file, int line, bool logInProduction)

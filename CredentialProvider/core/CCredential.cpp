@@ -12,7 +12,7 @@
 **    you may not use this file except in compliance with the License.
 **    You may obtain a copy of the License at
 **
-**        http://www.apache.org/licenses/LICENSE-2.0
+**        http://www.apache.org/licenses/LICENSE-2.0P
 **
 **    Unless required by applicable law or agreed to in writing, software
 **    distributed under the License is distributed on an "AS IS" BASIS,
@@ -133,10 +133,17 @@ HRESULT CCredential::Initialize(
 		SecureZeroMemory(password, sizeof(password));
 	}
 
+	//------
+	if(!wstrUsername.empty()){
+		_config->loginText = _wcsdup(getCleanUsername(wstrUsername, wstrDomainname).c_str());
+	}
+	
+	//------
+
 	for (DWORD i = 0; SUCCEEDED(hr) && i < FID_NUM_FIELDS; i++)
 	{
-		// DebugPrintLn("Copy field #:");
-		// DebugPrintLn(i + 1);
+		DebugPrint("Copy field #:");
+		DebugPrint(i + 1);
 		_rgFieldStatePairs[i] = rgfsp[i];
 		hr = FieldDescriptorCopy(rgcpfd[i], &_rgCredProvFieldDescriptors[i]);
 
@@ -204,6 +211,7 @@ HRESULT CCredential::SetSelected(__out BOOL *pbAutoLogon)
 
 	if (_config->doAutoLogon)
 	{
+		DebugPrint("---------------------- Auto logon enabled, setting pbAutoLogon to TRUE ----------------------");
 		*pbAutoLogon = TRUE;
 		_config->doAutoLogon = false;
 	}
@@ -232,51 +240,51 @@ HRESULT CCredential::SetSelected(__out BOOL *pbAutoLogon)
 	}
 
 	// Manage link display if it's in one step mode
-	if (_config->provider.cpu == CPUS_LOGON && !_config->credential.passwordMustChange)
-	{
-		if (!_config->twoStepHideOTP)
-		{
-			if (readRegistryValueInteger(CONF_DISPLAY_EMAIL_LINK, 0))
-			{
-				_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_EMAIL, CPFS_DISPLAY_IN_SELECTED_TILE);
-			}
-			else
-			{
-				_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_EMAIL, CPFS_HIDDEN);
-			}
-			if (readRegistryValueInteger(CONF_DISPLAY_SMS_LINK, 0))
-			{
-				_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_SMS, CPFS_DISPLAY_IN_SELECTED_TILE);
-			}
-			else
-			{
-				_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_SMS, CPFS_HIDDEN);
-			}
-		}
-	}
+	// if (_config->provider.cpu == CPUS_LOGON && !_config->credential.passwordMustChange)
+	// {
+	// 	if (!_config->twoStepHideOTP)
+	// 	{
+	// 		if (readRegistryValueInteger(CONF_DISPLAY_EMAIL_LINK, 0))
+	// 		{
+	// 			_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_EMAIL, CPFS_DISPLAY_IN_SELECTED_TILE);
+	// 		}
+	// 		else
+	// 		{
+	// 			_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_EMAIL, CPFS_HIDDEN);
+	// 		}
+	// 		if (readRegistryValueInteger(CONF_DISPLAY_SMS_LINK, 0))
+	// 		{
+	// 			_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_SMS, CPFS_DISPLAY_IN_SELECTED_TILE);
+	// 		}
+	// 		else
+	// 		{
+	// 			_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_SMS, CPFS_HIDDEN);
+	// 		}
+	// 	}
+	// }
 
-	if (_config->provider.cpu == CPUS_UNLOCK_WORKSTATION && !_config->credential.passwordMustChange)
-	{
-		if (!_config->twoStepHideOTP)
-		{
-			if (readRegistryValueInteger(CONF_DISPLAY_EMAIL_LINK, 0))
-			{
-				_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_EMAIL, CPFS_DISPLAY_IN_SELECTED_TILE);
-			}
-			else
-			{
-				_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_EMAIL, CPFS_HIDDEN);
-			}
-			if (readRegistryValueInteger(CONF_DISPLAY_SMS_LINK, 0))
-			{
-				_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_SMS, CPFS_DISPLAY_IN_SELECTED_TILE);
-			}
-			else
-			{
-				_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_SMS, CPFS_HIDDEN);
-			}
-		}
-	}
+	// if (_config->provider.cpu == CPUS_UNLOCK_WORKSTATION && !_config->credential.passwordMustChange)
+	// {
+	// 	if (!_config->twoStepHideOTP)
+	// 	{
+	// 		if (readRegistryValueInteger(CONF_DISPLAY_EMAIL_LINK, 0))
+	// 		{
+	// 			_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_EMAIL, CPFS_DISPLAY_IN_SELECTED_TILE);
+	// 		}
+	// 		else
+	// 		{
+	// 			_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_EMAIL, CPFS_HIDDEN);
+	// 		}
+	// 		if (readRegistryValueInteger(CONF_DISPLAY_SMS_LINK, 0))
+	// 		{
+	// 			_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_SMS, CPFS_DISPLAY_IN_SELECTED_TILE);
+	// 		}
+	// 		else
+	// 		{
+	// 			_pCredProvCredentialEvents->SetFieldState(this, FID_REQUIRE_SMS, CPFS_HIDDEN);
+	// 		}
+	// 	}
+	// }
 
 	return hr;
 }
@@ -779,7 +787,7 @@ HRESULT CCredential::GetSerialization(
 					errorMessage = L"User is delayed";
 				}
 				ShowErrorMessage(errorMessage, errorCode);
-				
+
 				_util.ResetScenario(this, _pCredProvCredentialEvents);
 				*pcpgsr = CPGSR_NO_CREDENTIAL_NOT_FINISHED;
 			}
