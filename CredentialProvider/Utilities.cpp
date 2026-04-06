@@ -446,31 +446,41 @@ HRESULT Utilities::SetScenario(
 		}
 	}
 
+	DebugPrint("-------------------------- Setting field strings:");
+
 	// Domain in FID_SUBTEXT, optional
 	if (_config->showDomainHint)
 	{
 		wstring domaintext = GetTranslatedText(TEXT_DOMAIN_HINT) + _config->credential.domain;
 		pCPCE->SetFieldString(pCredential, FID_SUBTEXT, domaintext.c_str());
+		DebugPrint(L"-- Setting subtext: " + domaintext);
 	}
 	else
 	{
 		pCPCE->SetFieldState(pCredential, FID_SUBTEXT, CPFS_HIDDEN);
+		DebugPrint(L"-- Hiding subtext");
 	}
+
 
 	// Display or not the "Receive an OTP by SMS" link
 	if (scenario == SCENARIO::SECOND_STEP && readRegistryValueInteger(CONF_DISPLAY_SMS_LINK, 0)) {
 		pCPCE->SetFieldState(pCredential, FID_REQUIRE_SMS, CPFS_DISPLAY_IN_SELECTED_TILE);
+		DebugPrint(L"-- Displaying SMS link");
 	}
 	else {
 		pCPCE->SetFieldState(pCredential, FID_REQUIRE_SMS, CPFS_HIDDEN);
+		DebugPrint(L"-- Hiding SMS link");
 	}
 
 	// Display or not the "Receive an OTP by EMAIL" link
 	if (scenario == SCENARIO::SECOND_STEP && readRegistryValueInteger(CONF_DISPLAY_EMAIL_LINK, 0)) {
 		pCPCE->SetFieldState(pCredential, FID_REQUIRE_EMAIL, CPFS_DISPLAY_IN_SELECTED_TILE);
+		DebugPrint(L"-- Displaying EMAIL link");
+
 	}
 	else {
 		pCPCE->SetFieldState(pCredential, FID_REQUIRE_EMAIL, CPFS_HIDDEN);
+		DebugPrint(L"-- Hiding EMAIL link");
 	}
 
 	// Display or not the "OTP sent by SMS"
@@ -486,13 +496,16 @@ HRESULT Utilities::SetScenario(
 		if (wstring(lastUsername) != L"") {
 			wstring prompt = wstring(lastUsername) + L" (Click to select)";
 			pCPCE->SetFieldString(pCredential, FID_LASTUSER_LOGGED, prompt.c_str());
+			DebugPrint(L"-- Displaying last logged user: " + prompt);
 		}
 		else {
 			pCPCE->SetFieldState(pCredential, FID_LASTUSER_LOGGED, CPFS_HIDDEN);
+			DebugPrint(L"-- No last logged user to display, hiding field");
 		}
 	}
 	else {
 		pCPCE->SetFieldState(pCredential, FID_LASTUSER_LOGGED, CPFS_HIDDEN);
+		DebugPrint(L"-- Hiding last logged user field");
 	}
 
 
@@ -560,12 +573,24 @@ HRESULT Utilities::SetFieldStatePairBatch(
 		return E_INVALIDARG;
 	}
 
+	DebugPrint("------------------------- Setting field states:");
+	DebugPrint((int)self);
 	for (unsigned int i = 0; i < FID_NUM_FIELDS && SUCCEEDED(hr); i++)
 	{
 		hr = pCPCE->SetFieldState(self, i, pFSP[i].cpfs);
 		if (SUCCEEDED(hr))
 		{
 			hr = pCPCE->SetFieldInteractiveState(self, i, pFSP[i].cpfis);
+			if(SUCCEEDED(hr))
+			{
+				DebugPrint(" ------------------------------------------------- Successfully set field state for field " + to_string(i) + " to " + to_string(pFSP[i].cpfs) + " and interactive state to " + to_string(pFSP[i].cpfis));
+			}
+			else
+			{
+				DebugPrint(" ------------------------------------------------- Failed to set interactive state for field " + to_string(i) + " with error: " + to_string(hr));
+			}
+		}else{
+			DebugPrint(" ------------------------------------------------- Failed to set field state for field " + to_string(i) + " with error: " + to_string(hr));
 		}
 	}
 
@@ -739,6 +764,7 @@ HRESULT Utilities::ReadUserField()
 {
 	if (_config->provider.cpu != CPUS_UNLOCK_WORKSTATION)
 	{
+		// wstring input(_config->provider.field_strings[FID_USERNAME]);
 		wstring input(_config->provider.field_strings[FID_USERNAME]);
 		DebugPrint(L"Loading user/domain from GUI, raw: '" + input + L"'");
 		wstring user_name, domain_name;
@@ -751,7 +777,7 @@ HRESULT Utilities::ReadUserField()
 			
 			// If the name doesn't contains @
 			auto const posAt = input.find_first_of(L"@", 0);
-			if (pos == std::string::npos) {
+			if (posAt == std::string::npos) {
 				// Read prefix domain in the registry
 				DWORD dwDefaultPrefixSize = 0;
 				PWSTR pszDefaultPrefix = L"";
@@ -880,7 +906,9 @@ HRESULT Utilities::ResetScenario(
 		else
 		{
 			SetScenario(pSelf, pCredProvCredentialEvents, SCENARIO::LOGON_BASE);
+			DebugPrint("--- Resetting scenario, setting submit button next to password field");
 			_config->provider.pCredProvCredentialEvents->SetFieldSubmitButton(_config->provider.pCredProvCredential, FID_SUBMIT_BUTTON, FID_LDAP_PASS);
+			DebugPrint("--- Resetting scenario, setting submit button next to password field done");
 		}
 	}
 

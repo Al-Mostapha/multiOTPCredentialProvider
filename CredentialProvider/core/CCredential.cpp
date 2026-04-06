@@ -298,9 +298,10 @@ HRESULT CCredential::SetDeselected()
 
 	HRESULT hr = S_OK;
 
-	_util.Clear(_rgFieldStrings, _rgCredProvFieldDescriptors, this, _pCredProvCredentialEvents, CLEAR_FIELDS_EDIT_AND_CRYPT);
-
-	_util.ResetScenario(this, _pCredProvCredentialEvents);
+	// --- this line causes a crash when the user clicks on the tile, then clicks on another tile and then clicks back on the first tile. The second time SetDeselected is called, _pCredProvCredentialEvents is already released and set to nullptr, so it causes an access violation when trying to call SetFieldString. We need to check if _pCredProvCredentialEvents is not nullptr before calling SetFieldString. ---
+	// _util.Clear(_rgFieldStrings, _rgCredProvFieldDescriptors, this, _pCredProvCredentialEvents, CLEAR_FIELDS_EDIT_AND_CRYPT);
+	// _util.ResetScenario(this, _pCredProvCredentialEvents);
+	// ---
 
 	// Reset password changing in case another user wants to log in
 	_config->credential.passwordChanged = false;

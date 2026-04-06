@@ -39,7 +39,7 @@ struct FIELD_STATE_PAIR
 // The Field interactive state indicates when 
 static const FIELD_STATE_PAIR s_rgScenarioDisplayAllFields[] =
 {
-	{ CPFS_DISPLAY_IN_BOTH, CPFIS_NONE },					// FID_LOGO
+	{ /*CPFS_DISPLAY_IN_BOTH*/ CPFS_HIDDEN, CPFIS_NONE },					// FID_LOGO
 	{ CPFS_DISPLAY_IN_BOTH, CPFIS_NONE },					// FID_LARGE_TEXT
 	{ CPFS_HIDDEN, CPFIS_NONE },							// FID_SMALL_TEXT
 	{ /* -----CPFS_DISPLAY_IN_SELECTED_TILE ------*/ CPFS_HIDDEN, CPFIS_FOCUSED },		// FID_USERNAME

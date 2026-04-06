@@ -144,7 +144,7 @@ private:
 
 	std::vector<std::unique_ptr<CCredential>> _credentials;
 
-	std::shared_ptr<MultiOTPConfiguration>			_config;
+	std::shared_ptr<MultiOTPConfiguration> _config;
 
 	ICredentialProviderUserArray *_pCredProviderUserArray;
 	int m_dwCredentialCount;
